@@ -1,7 +1,7 @@
 /* INCLUDES //{ */
 
-#include <ncurses.h>
 #include <mrs_lib/timer_handler.h>
+#include <ncurses.h>
 
 using namespace std;
 
@@ -17,22 +17,20 @@ typedef mrs_lib::ThreadTimer TimerType;
 
 //}
 
-namespace mrs_uav_status
-{
+namespace mrs_uav_status {
 
 /* class NcursesTest //{ */
 
 class NcursesTest : public rclcpp::Node {
-
-public:
+ public:
   NcursesTest();
 
-private:
-  rclcpp::Node::SharedPtr  node_;
+ private:
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Clock::SharedPtr clock_;
 
   rclcpp::TimerBase::SharedPtr timer_init_;
-  void                         timerInit();
+  void timerInit();
 
   rclcpp::CallbackGroup::SharedPtr cbkgrp_subs_;
   rclcpp::CallbackGroup::SharedPtr cbkgrp_ss_;
@@ -42,17 +40,17 @@ private:
 
   // | ------------------------- ncurses ------------------------ |
 
-  WINDOW *createNewWin(int height, int width, int starty, int startx);
+  WINDOW* createNewWin(int height, int width, int starty, int startx);
 
-  void destroyWin(WINDOW *local_win);
+  void destroyWin(WINDOW* local_win);
 
-  WINDOW *my_win_;
-  int     start_x_;
-  int     start_y_;
-  int     height_;
-  int     width_;
+  WINDOW* my_win_;
+  int start_x_;
+  int start_y_;
+  int height_;
+  int width_;
 
-public:
+ public:
   // | ------------------------- Timers ------------------------- |
 
   std::shared_ptr<TimerType> timer_main_;
@@ -65,23 +63,24 @@ public:
 /* NcursesTest() //{ */
 
 NcursesTest::NcursesTest() : Node("ncurses_test") {
-
   initscr();
   cbreak();
   timeout(1);
   keypad(stdscr, TRUE); /* I need that nifty F1 	*/
   noecho();
 
-  timer_init_ = this->create_wall_timer(std::chrono::duration<double>(0.1s), std::bind(&NcursesTest::timerInit, this));
+  timer_init_ =
+      this->create_wall_timer(std::chrono::duration<double>(0.1s),
+                              std::bind(&NcursesTest::timerInit, this));
 }
 
 //}
 
 /* createNewWin() //{ */
 
-WINDOW *NcursesTest::createNewWin(int height, int width, int starty, int startx) {
-
-  WINDOW *local_win;
+WINDOW* NcursesTest::createNewWin(int height, int width, int starty,
+                                  int startx) {
+  WINDOW* local_win;
 
   local_win = newwin(height, width, starty, startx);
 
@@ -98,8 +97,7 @@ WINDOW *NcursesTest::createNewWin(int height, int width, int starty, int startx)
 
 /* destroyWin() //{ */
 
-void NcursesTest::destroyWin(WINDOW *local_win) {
-
+void NcursesTest::destroyWin(WINDOW* local_win) {
   /* box(local_win, ' ', ' '); : This won't produce the desired
    * result of erasing the window. It will leave it's four corners
    * and so an ugly remnant of window.
@@ -125,13 +123,15 @@ void NcursesTest::destroyWin(WINDOW *local_win) {
 /* timerInit() //{ */
 
 void NcursesTest::timerInit() {
-
-  node_  = this->shared_from_this();
+  node_ = this->shared_from_this();
   clock_ = node_->get_clock();
 
-  cbkgrp_subs_ = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  cbkgrp_ss_   = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  cbkgrp_sc_   = create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_subs_ =
+      create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_ss_ =
+      create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_sc_ =
+      create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
 
   initialize();
 
@@ -143,9 +143,8 @@ void NcursesTest::timerInit() {
 /* initialize() //{ */
 
 void NcursesTest::initialize() {
-
-  height_  = 3;
-  width_   = 10;
+  height_ = 3;
+  width_ = 10;
   start_y_ = (LINES - height_) / 2; /* Calculating for a center placement */
   start_x_ = (COLS - width_) / 2;   /* of the window		*/
 
@@ -153,13 +152,15 @@ void NcursesTest::initialize() {
 
   mrs_lib::TimerHandlerOptions timer_opts_start;
 
-  timer_opts_start.node      = node_;
+  timer_opts_start.node = node_;
   timer_opts_start.autostart = true;
 
   {
-    std::function<void()> callback_fcn = std::bind(&NcursesTest::timerMain, this);
+    std::function<void()> callback_fcn =
+        std::bind(&NcursesTest::timerMain, this);
 
-    timer_main_ = std::make_shared<TimerType>(timer_opts_start, rclcpp::Rate(20.0, clock_), callback_fcn);
+    timer_main_ = std::make_shared<TimerType>(timer_opts_start,
+                                              rclcpp::Rate(20.0), callback_fcn);
   }
 
   RCLCPP_INFO(node_->get_logger(), "initialized");
@@ -170,44 +171,38 @@ void NcursesTest::initialize() {
 /* timerMain() //{ */
 
 void NcursesTest::timerMain() {
-
   destroyWin(my_win_);
 
   char ch = getch();
 
   switch (ch) {
+    case 'h': {
+      start_x_--;
 
-  case 'h': {
+      break;
+    }
 
-    start_x_--;
+    case 'l': {
+      start_x_++;
 
-    break;
-  }
+      break;
+    }
 
-  case 'l': {
+    case 'j': {
+      start_y_++;
 
-    start_x_++;
+      break;
+    }
 
-    break;
-  }
+    case 'k': {
+      start_y_--;
 
-  case 'j': {
+      break;
+    }
 
-    start_y_++;
-
-    break;
-  }
-
-  case 'k': {
-
-    start_y_--;
-
-    break;
-  }
-
-  default: {
-    break;
-  }
+    default: {
+      break;
+    }
   }
 
   my_win_ = createNewWin(height_, width_, start_y_, start_x_);
@@ -215,10 +210,9 @@ void NcursesTest::timerMain() {
 
 //}
 
-} // namespace mrs_uav_status
+}  // namespace mrs_uav_status
 
-int main(int argc, char **argv) {
-
+int main(int argc, char** argv) {
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<mrs_uav_status::NcursesTest>();

@@ -1,0 +1,11 @@
+# do not modify these
+root: ./
+name: eagle
+attach: true
+# you can modify these
+startup_window: status
+windows:
+  - status:
+      layout: tiled
+      panes:
+        - ros2 run mrs_uav_status status.sh
