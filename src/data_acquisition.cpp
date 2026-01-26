@@ -531,7 +531,9 @@ void Acquisition::initialize() {
   /*   } */
   /* } */
 
-  setupGenericCallbacks();
+  // TODO disabled becase broken in ROS1
+  // it crashes cause the tf-based generic subscribers don't know what topic to
+  // subscribe setupGenericCallbacks();
 
   //}
 
@@ -1746,9 +1748,9 @@ void Acquisition::callbackTfStatic(
     }
   }
 
-  if (got_new_tf_static) {
-    setupGenericCallbacks();
-  }
+  // if (got_new_tf_static) {
+  //   setupGenericCallbacks();
+  // }
 }
 //}
 
