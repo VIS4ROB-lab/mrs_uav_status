@@ -28,6 +28,10 @@
   <depend>libncurses</depend>
   <depend>libncurses-dev</depend>
   <depend>backward_ros</depend>
+  <exec_depend>rclpy</exec_depend>
+  <exec_depend>python3-tk</exec_depend>
+  <exec_depend>std_srvs</exec_depend>
+  <exec_depend>tf2_ros</exec_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

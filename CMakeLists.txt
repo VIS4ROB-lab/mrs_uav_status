@@ -3,7 +3,7 @@ project(mrs_uav_status)
 
 # set the correct standards
 set(CMAKE_C_STANDARD 99)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 # 1 == use rclcpp::Timer implementation
@@ -152,6 +152,12 @@ install(
 install(
   DIRECTORY scripts
   USE_SOURCE_PERMISSIONS
+  DESTINATION lib/${PROJECT_NAME}
+  PATTERN "status_gui.py" EXCLUDE
+)
+
+install(
+  PROGRAMS scripts/status_gui.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

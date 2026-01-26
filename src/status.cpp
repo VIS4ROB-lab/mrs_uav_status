@@ -3,23 +3,21 @@
 #include <menu.h>
 
 /* #include <status_window.h> */
-#include <mrs_msgs/msg/node_cpu_load.hpp>
-#include <mrs_msgs/msg/reference.hpp>
-#include <mrs_msgs/msg/gimbal_state.hpp>
-#include <mrs_msgs/msg/float64_stamped.hpp>
-
-#include <input_box.h>
 #include <commons.h>
-#include <iostream>
-#include <fstream>
-
-#include <mrs_lib/node.h>
+#include <input_box.h>
 #include <mrs_lib/geometry/cyclic.h>
+#include <mrs_lib/node.h>
 #include <mrs_lib/profiler.h>
 #include <mrs_lib/subscriber_handler.h>
 #include <mrs_lib/transformer.h>
 
 #include <boost/filesystem.hpp>
+#include <fstream>
+#include <iostream>
+#include <mrs_msgs/msg/float64_stamped.hpp>
+#include <mrs_msgs/msg/gimbal_state.hpp>
+#include <mrs_msgs/msg/node_cpu_load.hpp>
+#include <mrs_msgs/msg/reference.hpp>
 
 using namespace std;
 
@@ -29,8 +27,7 @@ using radians = mrs_lib::geometry::radians;
 
 /* typedefs //{ */
 
-typedef enum
-{
+typedef enum {
   STANDARD,
   REMOTE,
   GIMBAL,
@@ -51,19 +48,16 @@ typedef mrs_lib::ThreadTimer TimerType;
 
 //}
 
-namespace mrs_uav_status
-{
+namespace mrs_uav_status {
 
 /* class Status //{ */
 
-
 class Status : public mrs_lib::Node {
-
-public:
+ public:
   Status();
 
-private:
-  rclcpp::Node::SharedPtr  node_;
+ private:
+  rclcpp::Node::SharedPtr node_;
   rclcpp::Clock::SharedPtr clock_;
 
   rclcpp::CallbackGroup::SharedPtr cbkgrp_subs_;
@@ -72,7 +66,7 @@ private:
 
   void initialize();
 
-public:
+ public:
   std::string _colorscheme_;
   std::string _pwd_;
   std::string _display_config_filename_;
@@ -95,10 +89,14 @@ public:
 
   // | --------------------- Print routines --------------------- |
 
-  void printLimitedInt(WINDOW* win, int y, int x, string str_in, int num, int limit);
-  void printLimitedDouble(WINDOW* win, int y, int x, string str_in, double num, double limit);
-  void printLimitedString(WINDOW* win, int y, int x, string str_in, unsigned long limit);
-  void printCompressedLimitedString(WINDOW* win, int y, int x, string str_in, unsigned long limit);
+  void printLimitedInt(WINDOW* win, int y, int x, string str_in, int num,
+                       int limit);
+  void printLimitedDouble(WINDOW* win, int y, int x, string str_in, double num,
+                          double limit);
+  void printLimitedString(WINDOW* win, int y, int x, string str_in,
+                          unsigned long limit);
+  void printCompressedLimitedString(WINDOW* win, int y, int x, string str_in,
+                                    unsigned long limit);
   void printServiceResult(bool success, string msg);
   void printError(string msg);
   void printDebug(string msg);
@@ -121,14 +119,14 @@ public:
   void generalInfoHandeler(WINDOW* win);
   void stringHandler(WINDOW*);
 
-  double general_info_window_rate_  = 1;
+  double general_info_window_rate_ = 1;
   double generic_topic_window_rate_ = 1;
 
-  bool increment_counter_         = false;
-  int  estimator_display_counter_ = 0;
+  bool increment_counter_ = false;
+  int estimator_display_counter_ = 0;
 
-  int    _service_num_calls_ = 20;
-  double _service_delay_     = 0.1;
+  int _service_num_calls_ = 20;
+  double _service_delay_ = 0.1;
 
   void printCpuLoad(WINDOW* win);
   void printCpuTemp(WINDOW* win);
@@ -136,14 +134,15 @@ public:
   void printMemLoad(WINDOW* win);
   void printDiskSpace(WINDOW* win);
 
-  long last_idle_  = 0;
+  long last_idle_ = 0;
   long last_total_ = 0;
   long last_gigas_ = 0;
 
   // | ------------------------- Subscribers ------------------------ |
 
-  mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatus>      sh_uav_status_;
-  mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatusShort> sh_uav_status_short_;
+  mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatus> sh_uav_status_;
+  mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatusShort>
+      sh_uav_status_short_;
 
   // | ------------------------- Publishers ------------------------ |
 
@@ -152,7 +151,8 @@ public:
   // | ------------------------- Callbacks ------------------------- |
 
   void callbackUavStatus(const mrs_msgs::msg::UavStatus::ConstSharedPtr msg);
-  void callbackUavStatusShort(const mrs_msgs::msg::UavStatusShort::ConstSharedPtr msg);
+  void callbackUavStatusShort(
+      const mrs_msgs::msg::UavStatusShort::ConstSharedPtr msg);
 
   // Custom windows
   WINDOW* uav_state_window_;
@@ -202,9 +202,8 @@ public:
   std::string callTerminal(const char* cmd);
 
   mrs_lib::Profiler profiler_;
-  bool              _colorblind_mode_  = false;
-  bool              _profiler_enabled_ = false;
-
+  bool _colorblind_mode_ = false;
+  bool _profiler_enabled_ = false;
 
   // | ---------------------- Menu routines --------------------- |
 
@@ -221,15 +220,16 @@ public:
 
   // | --------------------- Service Clients -------------------- |
 
-
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::ReferenceStampedSrv>    service_goto_reference_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::TrajectoryReferenceSrv> service_trajectory_reference_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>                 service_set_constraints_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>                 service_set_gains_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>                 service_set_controller_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>                 service_set_tracker_;
-  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>                 service_set_estimator_;
-  mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger>                service_hover_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::ReferenceStampedSrv>
+      service_goto_reference_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::TrajectoryReferenceSrv>
+      service_trajectory_reference_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String> service_set_constraints_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String> service_set_gains_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String> service_set_controller_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String> service_set_tracker_;
+  mrs_lib::ServiceClientHandler<mrs_msgs::srv::String> service_set_estimator_;
+  mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger> service_hover_;
 
   // | -------------------- UAV configuration ------------------- |
 
@@ -250,51 +250,51 @@ public:
   vector<Menu> submenu_vec_;
 
   vector<service> service_vec_;
-  vector<string>  service_input_vec_;
-  vector<string>  main_menu_text_;
-  vector<string>  display_menu_text_;
-  vector<string>  constraints_text_;
-  vector<string>  gains_text_;
-  vector<string>  controllers_text_;
-  vector<string>  trackers_text_;
-  vector<string>  odometry_lat_sources_text_;
-  vector<string>  odometry_alt_sources_text_;
-  vector<string>  odometry_hdg_sources_text_;
+  vector<string> service_input_vec_;
+  vector<string> main_menu_text_;
+  vector<string> display_menu_text_;
+  vector<string> constraints_text_;
+  vector<string> gains_text_;
+  vector<string> controllers_text_;
+  vector<string> trackers_text_;
+  vector<string> odometry_lat_sources_text_;
+  vector<string> odometry_alt_sources_text_;
+  vector<string> odometry_hdg_sources_text_;
 
-  vector<double>   goto_double_vec_;
-  vector<string>   goto_menu_text_;
+  vector<double> goto_double_vec_;
+  vector<string> goto_menu_text_;
   vector<InputBox> goto_menu_inputs_;
 
   string old_constraints;
 
   mrs_msgs::msg::GimbalState gimbal_command;
-  const uint16_t             gimbal_max = 2000;
-  const uint16_t             gimbal_min = 1000;
+  const uint16_t gimbal_max = 2000;
+  const uint16_t gimbal_min = 1000;
 
   std::unique_ptr<mrs_lib::Transformer> transformer_;
 
   // | -------------------- Switches, states -------------------- |
 
-  bool remote_hover_    = false;
-  bool turbo_remote_    = false;
-  bool remote_global_   = false;
-  bool have_data_       = false;
+  bool remote_hover_ = false;
+  bool turbo_remote_ = false;
+  bool remote_global_ = false;
+  bool have_data_ = false;
   bool have_short_data_ = false;
 
-  bool avoiding_collision_          = false;
+  bool avoiding_collision_ = false;
   bool automatic_start_can_takeoff_ = false;
-  bool null_tracker_                = false;
-  bool is_flying_                   = false;
+  bool null_tracker_ = false;
+  bool is_flying_ = false;
 
   status_state state = STANDARD;
-  int          cols_, lines_;
+  int cols_, lines_;
 
   std::atomic<bool> initialized_ = false;
 
-  bool             mini_ = false;
+  bool mini_ = false;
   std::vector<int> selected_tmux_window_;
-  std::string      session_name_;
-  const int        MAX_SELECTED_TMUX_WINDOWS = 2;
+  std::string session_name_;
+  const int MAX_SELECTED_TMUX_WINDOWS = 2;
 };
 
 //}
@@ -302,7 +302,6 @@ public:
 /* Status() //{ */
 
 Status::Status() : Node("mrs_status_menu") {
-
   initscr();
   start_color();
   cbreak();
@@ -325,18 +324,20 @@ Status::Status() : Node("mrs_status_menu") {
 /* initialize() //{ */
 
 void Status::initialize() {
-
-  node_  = this_node_ptr();
+  node_ = this_node_ptr();
   clock_ = node_->get_clock();
 
-  cbkgrp_subs_   = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  cbkgrp_timers_ = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
-  cbkgrp_sc_     = node_->create_callback_group(rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_subs_ = node_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_timers_ = node_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
+  cbkgrp_sc_ = node_->create_callback_group(
+      rclcpp::CallbackGroupType::MutuallyExclusive);
 
   // | ---------------------- Param loader ---------------------- |
 
   bottom_window_clear_time_ = rclcpp::Time(0, 0, clock_->get_clock_type());
-  last_time_got_data_       = rclcpp::Time(0, 0, clock_->get_clock_type());
+  last_time_got_data_ = rclcpp::Time(0, 0, clock_->get_clock_type());
   last_time_got_short_data_ = rclcpp::Time(0, 0, clock_->get_clock_type());
 
   prefillUavStatus();
@@ -365,7 +366,8 @@ void Status::initialize() {
 
   param_loader.loadParam("colorscheme", _colorscheme_);
 
-  param_loader.loadParam("mrs_uav_status/turbo_remote_constraints", _turbo_remote_constraints_);
+  param_loader.loadParam("mrs_uav_status/turbo_remote_constraints",
+                         _turbo_remote_constraints_);
 
   param_loader.loadParam("mrs_uav_status/colorblind_mode", _colorblind_mode_);
   param_loader.loadParam("mrs_uav_status/enable_profiler", _profiler_enabled_);
@@ -384,54 +386,76 @@ void Status::initialize() {
 
   mrs_lib::TimerHandlerOptions timer_opts_start;
 
-  timer_opts_start.node           = node_;
-  timer_opts_start.autostart      = true;
+  timer_opts_start.node = node_;
+  timer_opts_start.autostart = true;
   timer_opts_start.callback_group = cbkgrp_timers_;
 
   {
-    std::function<void()> callback_fcn = std::bind(&Status::timerStatusFast, this);
+    std::function<void()> callback_fcn =
+        std::bind(&Status::timerStatusFast, this);
 
-    timer_status_fast_ = std::make_shared<TimerType>(timer_opts_start, rclcpp::Rate(20.0, clock_), callback_fcn);
+    timer_status_fast_ = std::make_shared<TimerType>(
+        timer_opts_start, rclcpp::Rate(20.0), callback_fcn);
   }
 
   {
-    std::function<void()> callback_fcn = std::bind(&Status::timerStatusSlow, this);
+    std::function<void()> callback_fcn =
+        std::bind(&Status::timerStatusSlow, this);
 
-    timer_status_slow_ = std::make_shared<TimerType>(timer_opts_start, rclcpp::Rate(1.0, clock_), callback_fcn);
+    timer_status_slow_ = std::make_shared<TimerType>(
+        timer_opts_start, rclcpp::Rate(1.0), callback_fcn);
   }
 
   {
     std::function<void()> callback_fcn = std::bind(&Status::timerResize, this);
 
-    timer_resize_ = std::make_shared<TimerType>(timer_opts_start, rclcpp::Rate(1.0, clock_), callback_fcn);
+    timer_resize_ = std::make_shared<TimerType>(
+        timer_opts_start, rclcpp::Rate(1.0), callback_fcn);
   }
 
   // | ------------------------ Subscribers ------------------------ |
 
   mrs_lib::SubscriberHandlerOptions shopts;
-  shopts.node                                = node_;
-  shopts.no_message_timeout                  = mrs_lib::no_timeout;
-  shopts.threadsafe                          = true;
-  shopts.autostart                           = true;
+  shopts.node = node_;
+  shopts.no_message_timeout = mrs_lib::no_timeout;
+  shopts.threadsafe = true;
+  shopts.autostart = true;
   shopts.subscription_options.callback_group = cbkgrp_subs_;
 
-  sh_uav_status_       = mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatus>(shopts, "~/uav_status_in", &Status::callbackUavStatus, this);
-  sh_uav_status_short_ = mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatusShort>(shopts, "~/uav_status_short_in", &Status::callbackUavStatusShort, this);
+  sh_uav_status_ = mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatus>(
+      shopts, "~/uav_status_in", &Status::callbackUavStatus, this);
+  sh_uav_status_short_ =
+      mrs_lib::SubscriberHandler<mrs_msgs::msg::UavStatusShort>(
+          shopts, "~/uav_status_short_in", &Status::callbackUavStatusShort,
+          this);
 
   // | ------------------------ Publishers ------------------------ |
 
-  ph_gimbal_state_ = mrs_lib::PublisherHandler<mrs_msgs::msg::GimbalState>(node_, "~/gimbal_command_out");
+  ph_gimbal_state_ = mrs_lib::PublisherHandler<mrs_msgs::msg::GimbalState>(
+      node_, "~/gimbal_command_out");
 
   // | --------------------- service clients -------------------- |
 
-  service_goto_reference_       = mrs_lib::ServiceClientHandler<mrs_msgs::srv::ReferenceStampedSrv>(node_, "~/reference_out", cbkgrp_sc_);
-  service_trajectory_reference_ = mrs_lib::ServiceClientHandler<mrs_msgs::srv::TrajectoryReferenceSrv>(node_, "~/trajectory_reference_out", cbkgrp_sc_);
-  service_set_constraints_      = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(node_, "~/set_constraints_out", cbkgrp_sc_);
-  service_set_gains_            = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(node_, "~/set_gains_out", cbkgrp_sc_);
-  service_set_controller_       = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(node_, "~/set_controller_out", cbkgrp_sc_);
-  service_set_tracker_          = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(node_, "~/set_tracker_out", cbkgrp_sc_);
-  service_set_estimator_        = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(node_, "~/set_estimator_out", cbkgrp_sc_);
-  service_hover_                = mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger>(node_, "~/hover_out", cbkgrp_sc_);
+  service_goto_reference_ =
+      mrs_lib::ServiceClientHandler<mrs_msgs::srv::ReferenceStampedSrv>(
+          node_, "~/reference_out", cbkgrp_sc_);
+  service_trajectory_reference_ =
+      mrs_lib::ServiceClientHandler<mrs_msgs::srv::TrajectoryReferenceSrv>(
+          node_, "~/trajectory_reference_out", cbkgrp_sc_);
+  service_set_constraints_ =
+      mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(
+          node_, "~/set_constraints_out", cbkgrp_sc_);
+  service_set_gains_ = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(
+      node_, "~/set_gains_out", cbkgrp_sc_);
+  service_set_controller_ =
+      mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(
+          node_, "~/set_controller_out", cbkgrp_sc_);
+  service_set_tracker_ = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(
+      node_, "~/set_tracker_out", cbkgrp_sc_);
+  service_set_estimator_ = mrs_lib::ServiceClientHandler<mrs_msgs::srv::String>(
+      node_, "~/set_estimator_out", cbkgrp_sc_);
+  service_hover_ = mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger>(
+      node_, "~/hover_out", cbkgrp_sc_);
 
   // mrs_lib profiler
   profiler_ = mrs_lib::Profiler(node_, "Status", _profiler_enabled_);
@@ -460,7 +484,6 @@ void Status::initialize() {
   _display_config_filename_ = _pwd_ + "/.mrs_status_display_config~";
 
   if (boost::filesystem::exists(_display_config_filename_)) {
-
     selected_tmux_window_.clear();
 
     std::ifstream file(_display_config_filename_);
@@ -468,13 +491,11 @@ void Status::initialize() {
     std::string line;
 
     for (int i = 0; i < MAX_SELECTED_TMUX_WINDOWS; i++) {
-
       getline(file, line);
 
       try {
         selected_tmux_window_.push_back(stoi(line));
-      }
-      catch (const invalid_argument& e) {
+      } catch (const invalid_argument& e) {
       }
     }
 
@@ -493,13 +514,14 @@ void Status::initialize() {
 /* setupWindows() //{ */
 
 void Status::setupWindows() {
-
   std::string command = "tmux display-message -p '#S'";
-  session_name_       = callTerminal(command.c_str());
-  session_name_.erase(std::remove(session_name_.begin(), session_name_.end(), '\n'), session_name_.end());
+  session_name_ = callTerminal(command.c_str());
+  session_name_.erase(
+      std::remove(session_name_.begin(), session_name_.end(), '\n'),
+      session_name_.end());
 
-  command                           = "tmux list-panes -F '#{pane_width}x#{pane_height}'";
-  std::string              response = callTerminal(command.c_str());
+  command = "tmux list-panes -F '#{pane_width}x#{pane_height}'";
+  std::string response = callTerminal(command.c_str());
   std::vector<std::string> results;
   boost::split(results, response, [](char c) { return c == 'x'; });
 
@@ -516,33 +538,32 @@ void Status::setupWindows() {
   /* } */
 
   if (mini_) {
-
     control_manager_window_ = newwin(4, 9, 1, 1);
-    uav_state_window_       = newwin(6, 9, 5, 1);
-    top_bar_window_         = newwin(1, 140, 0, 1);
-    general_info_window_    = newwin(4, 9, 1, 10);
-    hw_api_state_window_    = newwin(6, 9, 5, 10);
-    debug_window_           = newwin(lines_ - 15, cols_ - 1, 13, 1);
-    generic_topic_window_   = newwin(10, 9, 1, 19);
-    string_window_          = newwin(10, 15, 1, 28);
-    bottom_window_          = newwin(1, 120, 11, 1);
+    uav_state_window_ = newwin(6, 9, 5, 1);
+    top_bar_window_ = newwin(1, 140, 0, 1);
+    general_info_window_ = newwin(4, 9, 1, 10);
+    hw_api_state_window_ = newwin(6, 9, 5, 10);
+    debug_window_ = newwin(lines_ - 15, cols_ - 1, 13, 1);
+    generic_topic_window_ = newwin(10, 9, 1, 19);
+    string_window_ = newwin(10, 15, 1, 28);
+    bottom_window_ = newwin(1, 120, 11, 1);
 
   } else {
-
-    uav_state_window_       = newwin(7, 26, 5, 1);
+    uav_state_window_ = newwin(7, 26, 5, 1);
     control_manager_window_ = newwin(4, 26, 1, 1);
-    hw_api_state_window_    = newwin(7, 25, 5, 27);
-    general_info_window_    = newwin(4, 25, 1, 27);
-    top_bar_window_         = newwin(1, 140, 0, 1);
-    bottom_window_          = newwin(1, 120, 12, 1);
-    debug_window_           = newwin(lines_ - 15, cols_ - 1, 13, 1);
-    int half_lines          = (lines_ - 18) / 2;
-    sub_tmux_window_1_      = derwin(debug_window_, half_lines, cols_ - 3, 1, 1);
-    sub_tmux_window_2_      = derwin(debug_window_, half_lines, cols_ - 3, half_lines + 2, 1);
+    hw_api_state_window_ = newwin(7, 25, 5, 27);
+    general_info_window_ = newwin(4, 25, 1, 27);
+    top_bar_window_ = newwin(1, 140, 0, 1);
+    bottom_window_ = newwin(1, 120, 12, 1);
+    debug_window_ = newwin(lines_ - 15, cols_ - 1, 13, 1);
+    int half_lines = (lines_ - 18) / 2;
+    sub_tmux_window_1_ = derwin(debug_window_, half_lines, cols_ - 3, 1, 1);
+    sub_tmux_window_2_ =
+        derwin(debug_window_, half_lines, cols_ - 3, half_lines + 2, 1);
 
     generic_topic_window_ = newwin(11, 25, 1, 52);
-    string_window_        = newwin(11, 32, 1, 77);
-    node_stats_window_    = newwin(11, 50, 1, 109);
+    string_window_ = newwin(11, 32, 1, 77);
+    node_stats_window_ = newwin(11, 50, 1, 109);
   }
 
   clear();
@@ -554,13 +575,11 @@ void Status::setupWindows() {
 /* timerResize() //{ */
 
 void Status::timerResize() {
-
   if (!initialized_) {
     return;
   }
 
   if (updateTermSize()) {
-
     if (cols_ > 30) {
       resize_term(lines_, cols_);
       setupWindows();
@@ -573,10 +592,9 @@ void Status::timerResize() {
 /* updateTermSize() //{ */
 
 bool Status::updateTermSize() {
-
   bool changed = false;
 
-  std::string command  = "tmux list-panes -F '#{pane_width}x#{pane_height}'";
+  std::string command = "tmux list-panes -F '#{pane_width}x#{pane_height}'";
   std::string response = callTerminal(command.c_str());
 
   std::vector<std::string> results;
@@ -586,31 +604,29 @@ bool Status::updateTermSize() {
   int cols, lines;
 
   try {
-    cols  = stoi(results[0]);
+    cols = stoi(results[0]);
     lines = stoi(results[1]);
   }
 
   catch (const invalid_argument& e) {
-    cols  = 0;
+    cols = 0;
     lines = 0;
   }
 
   if (cols_ != cols || lines_ != lines) {
-    lines_  = lines;
-    cols_   = cols;
+    lines_ = lines;
+    cols_ = cols;
     changed = true;
   }
 
   return (changed);
 }
 
-
 //}
 
 /* timerStatusFast() //{ */
 
 void Status::timerStatusFast() {
-
   if (!initialized_) {
     return;
   }
@@ -630,7 +646,8 @@ void Status::timerStatusFast() {
   }
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("uavStateHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("uavStateHandler");
     uavStateHandler(uav_state_window_);
   }
 
@@ -638,21 +655,17 @@ void Status::timerStatusFast() {
     werase(bottom_window_);
   }
 
-  int  key_in = getch();
+  int key_in = getch();
   bool is_flying_normally_;
 
   switch (state) {
-
       /* STANDARD //{ */
 
     case STANDARD: {
-
       switch (key_in) {
-
           /* R //{ */
 
         case 'R': {
-
           {
             std::scoped_lock lock(mutex_status_msg_);
             is_flying_normally_ = uav_status_.flying_normally;
@@ -660,7 +673,7 @@ void Status::timerStatusFast() {
 
           if (is_flying_normally_) {
             remote_hover_ = false;
-            state         = REMOTE;
+            state = REMOTE;
           }
 
           break;
@@ -671,12 +684,11 @@ void Status::timerStatusFast() {
           /* G //{ */
 
         case 'G': {
-
-          gimbal_command.fpv_mode    = true;
-          gimbal_command.is_on       = true;
-          gimbal_command.gimbal_pan  = 1500;
+          gimbal_command.fpv_mode = true;
+          gimbal_command.is_on = true;
+          gimbal_command.gimbal_pan = 1500;
           gimbal_command.gimbal_tilt = 1500;
-          state                      = GIMBAL;
+          state = GIMBAL;
           break;
 
           case 'm':
@@ -721,14 +733,11 @@ void Status::timerStatusFast() {
       /* REMOTE //{ */
 
     case REMOTE: {
-
       flushinp();
       remoteHandler(key_in, top_bar_window_);
 
       if (key_in == 'R' || key_in == KEY_ESC) {
-
         if (turbo_remote_) {
-
           turbo_remote_ = false;
 
           auto request = std::make_shared<mrs_msgs::srv::String::Request>();
@@ -738,7 +747,8 @@ void Status::timerStatusFast() {
           auto response = service_set_constraints_.callSync(request);
 
           if (response) {
-            printServiceResult(response.value()->success, response.value()->message);
+            printServiceResult(response.value()->success,
+                               response.value()->message);
           } else {
             printServiceResult(false, "service could not be called");
           }
@@ -755,7 +765,6 @@ void Status::timerStatusFast() {
       /* GIMBAL //{ */
 
     case GIMBAL: {
-
       flushinp();
 
       gimbalHandler(key_in, top_bar_window_);
@@ -772,11 +781,9 @@ void Status::timerStatusFast() {
       /* MAIN_MENU //{ */
 
     case MAIN_MENU: {
-
       flushinp();
 
       if (mainMenuHandler(key_in)) {
-
         menu_vec_.clear();
         submenu_vec_.clear();
 
@@ -794,7 +801,6 @@ void Status::timerStatusFast() {
       /* GOTO_MENU //{ */
 
     case GOTO_MENU: {
-
       flushinp();
 
       if (gotoMenuHandler(key_in)) {
@@ -811,7 +817,6 @@ void Status::timerStatusFast() {
       /* DISPLAY_MENU //{ */
 
     case DISPLAY_MENU: {
-
       flushinp();
 
       if (displayMenuHandler(key_in)) {
@@ -854,7 +859,6 @@ void Status::timerStatusFast() {
 /* timerStatusSlow() //{ */
 
 void Status::timerStatusSlow() {
-
   if (!initialized_) {
     return;
   }
@@ -863,32 +867,38 @@ void Status::timerStatusSlow() {
   estimator_display_counter_ += int(increment_counter_);
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("hwApiStateHander");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("hwApiStateHander");
     hwApiStateHander(hw_api_state_window_);
   }
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("controlManagerHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("controlManagerHandler");
     controlManagerHandler(control_manager_window_);
   }
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("genericTopicHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("genericTopicHandler");
     genericTopicHandler(generic_topic_window_);
   }
 
   if (!mini_) {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("nodeStatsHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("nodeStatsHandler");
     nodeStatsHandler(node_stats_window_);
   }
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("stringHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("stringHandler");
     stringHandler(string_window_);
   }
 
   {
-    mrs_lib::Routine profiler_routine = profiler_.createRoutine("generalInfoHandler");
+    mrs_lib::Routine profiler_routine =
+        profiler_.createRoutine("generalInfoHandler");
     generalInfoHandeler(general_info_window_);
   }
 }
@@ -897,11 +907,9 @@ void Status::timerStatusSlow() {
 
 /* HANDLERS //{ */
 
-
 /* mainMenuHandler() //{ */
 
 bool Status::mainMenuHandler(int key_in) {
-
   /* SUBMENU IS OPEN //{ */
 
   if (!submenu_vec_.empty()) {
@@ -911,32 +919,31 @@ bool Status::mainMenuHandler(int key_in) {
     optional<tuple<int, int>> ret;
 
     switch (submenu_vec_[0].getId()) {
-
       case 0:
 
         // TRIGGER CONFIRMATION
         ret = submenu_vec_[0].iterate(key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             if (line == 1) {
+              auto request =
+                  std::make_shared<std_srvs::srv::Trigger::Request>();
 
-              auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
-
-              auto response = service_vec_[line_in_upper_menu_].service_client.callSync(request);
+              auto response =
+                  service_vec_[line_in_upper_menu_].service_client.callSync(
+                      request);
 
               if (response) {
-                printServiceResult(response.value()->success, response.value()->message);
+                printServiceResult(response.value()->success,
+                                   response.value()->message);
               } else {
                 printServiceResult(false, "service could not be called");
               }
@@ -946,7 +953,6 @@ bool Status::mainMenuHandler(int key_in) {
               return true;
 
             } else {
-
               submenu_vec_.clear();
               return false;
             }
@@ -959,17 +965,14 @@ bool Status::mainMenuHandler(int key_in) {
         ret = submenu_vec_[0].iterate(constraints_text_, key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             auto request = std::make_shared<mrs_msgs::srv::String::Request>();
 
             request->value = constraints_text_[line];
@@ -977,7 +980,8 @@ bool Status::mainMenuHandler(int key_in) {
             auto response = service_set_constraints_.callSync(request);
 
             if (response) {
-              printServiceResult(response.value()->success, response.value()->message);
+              printServiceResult(response.value()->success,
+                                 response.value()->message);
             } else {
               printServiceResult(false, "service could not be called");
             }
@@ -994,17 +998,14 @@ bool Status::mainMenuHandler(int key_in) {
         ret = submenu_vec_[0].iterate(gains_text_, key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             auto request = std::make_shared<mrs_msgs::srv::String::Request>();
 
             request->value = gains_text_[line];
@@ -1012,7 +1013,8 @@ bool Status::mainMenuHandler(int key_in) {
             auto response = service_set_gains_.callSync(request);
 
             if (response) {
-              printServiceResult(response.value()->success, response.value()->message);
+              printServiceResult(response.value()->success,
+                                 response.value()->message);
             } else {
               printServiceResult(false, "service could not be called");
             }
@@ -1028,17 +1030,14 @@ bool Status::mainMenuHandler(int key_in) {
         ret = submenu_vec_[0].iterate(controllers_text_, key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             auto request = std::make_shared<mrs_msgs::srv::String::Request>();
 
             request->value = controllers_text_[line];
@@ -1046,7 +1045,8 @@ bool Status::mainMenuHandler(int key_in) {
             auto response = service_set_controller_.callSync(request);
 
             if (response) {
-              printServiceResult(response.value()->success, response.value()->message);
+              printServiceResult(response.value()->success,
+                                 response.value()->message);
             } else {
               printServiceResult(false, "service could not be called");
             }
@@ -1062,17 +1062,14 @@ bool Status::mainMenuHandler(int key_in) {
         ret = submenu_vec_[0].iterate(trackers_text_, key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             auto request = std::make_shared<mrs_msgs::srv::String::Request>();
 
             request->value = trackers_text_[line];
@@ -1080,7 +1077,8 @@ bool Status::mainMenuHandler(int key_in) {
             auto response = service_set_tracker_.callSync(request);
 
             if (response) {
-              printServiceResult(response.value()->success, response.value()->message);
+              printServiceResult(response.value()->success,
+                                 response.value()->message);
             } else {
               printServiceResult(false, "service could not be called");
             }
@@ -1096,17 +1094,14 @@ bool Status::mainMenuHandler(int key_in) {
         ret = submenu_vec_[0].iterate(odometry_lat_sources_text_, key_in, true);
 
         if (ret.has_value()) {
-
           int line = get<0>(ret.value());
-          int key  = get<1>(ret.value());
+          int key = get<1>(ret.value());
 
           if (line == 666 && key == 666) {
-
             submenu_vec_.clear();
             return false;
 
           } else if (key == KEY_ENT) {
-
             auto request = std::make_shared<mrs_msgs::srv::String::Request>();
 
             request->value = odometry_lat_sources_text_[line];
@@ -1114,7 +1109,8 @@ bool Status::mainMenuHandler(int key_in) {
             auto response = service_set_estimator_.callSync(request);
 
             if (response) {
-              printServiceResult(response.value()->success, response.value()->message);
+              printServiceResult(response.value()->success,
+                                 response.value()->message);
             } else {
               printServiceResult(false, "service could not be called");
             }
@@ -1135,26 +1131,23 @@ bool Status::mainMenuHandler(int key_in) {
   } else {
     // NORMAL CASE - NO SUBMENU
 
-    optional<tuple<int, int>> ret = menu_vec_[0].iterate(main_menu_text_, key_in, true);
+    optional<tuple<int, int>> ret =
+        menu_vec_[0].iterate(main_menu_text_, key_in, true);
 
     if (ret.has_value()) {
-
       unsigned long line = get<0>(ret.value());
-      int           key  = get<1>(ret.value());
+      int key = get<1>(ret.value());
 
       if (line == 666 && key == 666) {
-
         menu_vec_.clear();
         return true;
 
       } else if (key == KEY_ENT) {
-
         if (line < service_vec_.size()) {
-
-          int                  x;
-          int                  y;
+          int x;
+          int y;
           [[maybe_unused]] int rows;
-          int                  cols;
+          int cols;
 
           line_in_upper_menu_ = line;
 
@@ -1176,11 +1169,10 @@ bool Status::mainMenuHandler(int key_in) {
           }
 
           if (!constraints_text_.empty()) {
-
-            int                  x;
-            int                  y;
+            int x;
+            int y;
             [[maybe_unused]] int rows;
-            int                  cols;
+            int cols;
 
             getyx(menu_vec_[0].getWin(), x, y);
             getmaxyx(menu_vec_[0].getWin(), rows, cols);
@@ -1198,11 +1190,10 @@ bool Status::mainMenuHandler(int key_in) {
           }
 
           if (!gains_text_.empty()) {
-
-            int                  x;
-            int                  y;
+            int x;
+            int y;
             [[maybe_unused]] int rows;
-            int                  cols;
+            int cols;
 
             getyx(menu_vec_[0].getWin(), x, y);
             getmaxyx(menu_vec_[0].getWin(), rows, cols);
@@ -1220,11 +1211,10 @@ bool Status::mainMenuHandler(int key_in) {
           }
 
           if (!controllers_text_.empty()) {
-
-            int                  x;
-            int                  y;
+            int x;
+            int y;
             [[maybe_unused]] int rows;
-            int                  cols;
+            int cols;
 
             getyx(menu_vec_[0].getWin(), x, y);
             getmaxyx(menu_vec_[0].getWin(), rows, cols);
@@ -1242,11 +1232,10 @@ bool Status::mainMenuHandler(int key_in) {
           }
 
           if (!trackers_text_.empty()) {
-
-            int                  x;
-            int                  y;
+            int x;
+            int y;
             [[maybe_unused]] int rows;
-            int                  cols;
+            int cols;
 
             getyx(menu_vec_[0].getWin(), x, y);
             getmaxyx(menu_vec_[0].getWin(), rows, cols);
@@ -1264,11 +1253,10 @@ bool Status::mainMenuHandler(int key_in) {
           }
 
           if (!odometry_lat_sources_text_.empty()) {
-
-            int                  x;
-            int                  y;
+            int x;
+            int y;
             [[maybe_unused]] int rows;
-            int                  cols;
+            int cols;
 
             getyx(menu_vec_[0].getWin(), x, y);
             getmaxyx(menu_vec_[0].getWin(), rows, cols);
@@ -1293,31 +1281,30 @@ bool Status::mainMenuHandler(int key_in) {
 /* gotoMenuHandler() //{ */
 
 bool Status::gotoMenuHandler(int key_in) {
-
-  optional<tuple<int, int>> ret = menu_vec_[0].iterate(goto_menu_text_, key_in, false);
+  optional<tuple<int, int>> ret =
+      menu_vec_[0].iterate(goto_menu_text_, key_in, false);
 
   if (ret.has_value()) {
     size_t line = get<0>(ret.value());
-    int    key  = get<1>(ret.value());
+    int key = get<1>(ret.value());
 
     if (line == 666 && key == 666) {
-
       menu_vec_.clear();
       return true;
 
     } else if (key == KEY_ENT) {
-
       goto_double_vec_[0] = goto_menu_inputs_[0].getDouble();
       goto_double_vec_[1] = goto_menu_inputs_[1].getDouble();
       goto_double_vec_[2] = goto_menu_inputs_[2].getDouble();
       goto_double_vec_[3] = goto_menu_inputs_[3].getDouble();
 
-      auto request = std::make_shared<mrs_msgs::srv::ReferenceStampedSrv::Request>();
+      auto request =
+          std::make_shared<mrs_msgs::srv::ReferenceStampedSrv::Request>();
 
       request->reference.position.x = goto_double_vec_[0];
       request->reference.position.y = goto_double_vec_[1];
       request->reference.position.z = goto_double_vec_[2];
-      request->reference.heading    = goto_double_vec_[3];
+      request->reference.heading = goto_double_vec_[3];
 
       {
         std::scoped_lock lock(mutex_status_msg_);
@@ -1327,7 +1314,8 @@ bool Status::gotoMenuHandler(int key_in) {
       auto response = service_goto_reference_.callSync(request);
 
       if (response) {
-        printServiceResult(response.value()->success, response.value()->message);
+        printServiceResult(response.value()->success,
+                           response.value()->message);
       } else {
         printServiceResult(false, "service could not be called");
       }
@@ -1337,11 +1325,9 @@ bool Status::gotoMenuHandler(int key_in) {
       return true;
 
     } else if (line < goto_menu_inputs_.size()) {
-
       goto_menu_inputs_[line].Process(key);
     }
   }
-
 
   for (size_t i = 0; i < goto_menu_inputs_.size(); i++) {
     if (int(i) == menu_vec_[0].getLine()) {
@@ -1360,32 +1346,33 @@ bool Status::gotoMenuHandler(int key_in) {
 /* displayMenuHandler() //{ */
 
 bool Status::displayMenuHandler(int key_in) {
-
-  optional<tuple<int, int>> ret = menu_vec_[0].iterate(display_menu_text_, key_in, false);
+  optional<tuple<int, int>> ret =
+      menu_vec_[0].iterate(display_menu_text_, key_in, false);
 
   if (ret.has_value()) {
     size_t line = get<0>(ret.value());
-    int    key  = get<1>(ret.value());
+    int key = get<1>(ret.value());
 
     if (line == 666 && key == 666) {
-
       menu_vec_.clear();
       return true;
     }
 
     else if (key == KEY_ENT) {
-
-      auto it = std::find(selected_tmux_window_.begin(), selected_tmux_window_.end(), line);
+      auto it = std::find(selected_tmux_window_.begin(),
+                          selected_tmux_window_.end(), line);
 
       if (it != selected_tmux_window_.end()) {
         display_menu_text_[line][1] = ' ';
         selected_tmux_window_.erase(it);
-      } else if (int(selected_tmux_window_.size()) < MAX_SELECTED_TMUX_WINDOWS) {
+      } else if (int(selected_tmux_window_.size()) <
+                 MAX_SELECTED_TMUX_WINDOWS) {
         display_menu_text_[line][1] = '*';
         selected_tmux_window_.push_back(line);
       }
 
-      std::ofstream outputFile(_display_config_filename_, std::ofstream::out | std::ofstream::trunc);
+      std::ofstream outputFile(_display_config_filename_,
+                               std::ofstream::out | std::ofstream::trunc);
 
       for (size_t i = 0; i < selected_tmux_window_.size(); i++) {
         outputFile << selected_tmux_window_[i] << '\n';
@@ -1403,7 +1390,6 @@ bool Status::displayMenuHandler(int key_in) {
 /* remoteHandler() //{ */
 
 void Status::remoteHandler(int key, WINDOW* win) {
-
   if (_light_) {
     wattron(win, A_STANDOUT);
   }
@@ -1442,16 +1428,15 @@ void Status::remoteHandler(int key, WINDOW* win) {
 
   wattroff(win, COLOR_PAIR(RED));
 
-  mrs_msgs::msg::Reference       reference;
+  mrs_msgs::msg::Reference reference;
   mrs_msgs::srv::String::Request string_service;
 
   reference.position.x = 0.0;
   reference.position.y = 0.0;
   reference.position.z = 0.0;
-  reference.heading    = 0.0;
+  reference.heading = 0.0;
 
   switch (key) {
-
     case 'w':
     case 'k':
     case KEY_UP:
@@ -1557,9 +1542,7 @@ void Status::remoteHandler(int key, WINDOW* win) {
       }
 
       if (is_flying_normally_) {
-
         if (turbo_remote_) {
-
           turbo_remote_ = false;
 
           auto request = std::make_shared<mrs_msgs::srv::String::Request>();
@@ -1569,13 +1552,13 @@ void Status::remoteHandler(int key, WINDOW* win) {
           auto response = service_set_constraints_.callSync(request);
 
           if (response) {
-            printServiceResult(response.value()->success, response.value()->message);
+            printServiceResult(response.value()->success,
+                               response.value()->message);
           } else {
             printServiceResult(false, "service could not be called");
           }
 
         } else {
-
           turbo_remote_ = true;
 
           {
@@ -1590,7 +1573,8 @@ void Status::remoteHandler(int key, WINDOW* win) {
           auto response = service_set_constraints_.callSync(request);
 
           if (response) {
-            printServiceResult(response.value()->success, response.value()->message);
+            printServiceResult(response.value()->success,
+                               response.value()->message);
           } else {
             printServiceResult(false, "service could not be called");
           }
@@ -1600,7 +1584,6 @@ void Status::remoteHandler(int key, WINDOW* win) {
       break;
 
     case 'G': {
-
       {
         std::scoped_lock lock(mutex_status_msg_);
         is_flying_normally_ = uav_status_.flying_normally;
@@ -1614,9 +1597,7 @@ void Status::remoteHandler(int key, WINDOW* win) {
     }
 
     default: {
-
       if (remote_hover_) {
-
         auto request = std::make_shared<std_srvs::srv::Trigger::Request>();
 
         service_hover_.callSync(request);
@@ -1636,7 +1617,6 @@ void Status::remoteHandler(int key, WINDOW* win) {
 /* gimbalHandler() //{ */
 
 void Status::gimbalHandler(int key, WINDOW* win) {
-
   if (_light_) {
     wattron(win, A_STANDOUT);
   }
@@ -1653,12 +1633,11 @@ void Status::gimbalHandler(int key, WINDOW* win) {
 
   wattroff(win, COLOR_PAIR(RED));
 
-  const uint16_t gimbal_max       = 2000;
-  const uint16_t gimbal_min       = 1000;
-  uint16_t       gimbal_increment = 10;
+  const uint16_t gimbal_max = 2000;
+  const uint16_t gimbal_min = 1000;
+  uint16_t gimbal_increment = 10;
 
   switch (key) {
-
     case 'w':
     case 'k':
     case KEY_UP:
@@ -1692,10 +1671,10 @@ void Status::gimbalHandler(int key, WINDOW* win) {
       break;
 
     case 'r':
-      gimbal_command.is_on       = true;
-      gimbal_command.fpv_mode    = true;
+      gimbal_command.is_on = true;
+      gimbal_command.fpv_mode = true;
       gimbal_command.gimbal_tilt = 1500;
-      gimbal_command.gimbal_pan  = 1500;
+      gimbal_command.gimbal_pan = 1500;
       break;
 
       /* case 'r': */
@@ -1757,8 +1736,10 @@ void Status::gimbalHandler(int key, WINDOW* win) {
 
       /*       turbo_remote_                = false; */
       /*       string_service.request.value = old_constraints; */
-      /*       service_set_constraints_.call(string_service, _service_num_calls_, _service_delay_); */
-      /*       printServiceResult(string_service.response.success, string_service.response.message); */
+      /*       service_set_constraints_.call(string_service,
+       * _service_num_calls_, _service_delay_); */
+      /*       printServiceResult(string_service.response.success,
+       * string_service.response.message); */
 
       /*     } else { */
 
@@ -1770,15 +1751,16 @@ void Status::gimbalHandler(int key, WINDOW* win) {
       /*       } */
 
       /*       string_service.request.value = _turbo_remote_constraints_; */
-      /*       service_set_constraints_.call(string_service, _service_num_calls_, _service_delay_); */
-      /*       printServiceResult(string_service.response.success, string_service.response.message); */
+      /*       service_set_constraints_.call(string_service,
+       * _service_num_calls_, _service_delay_); */
+      /*       printServiceResult(string_service.response.success,
+       * string_service.response.message); */
       /*     } */
       /*   } */
 
       /*   break; */
 
       /* case 'G': */
-
 
       /* { */
       /*   std::scoped_lock lock(mutex_status_msg_); */
@@ -1789,7 +1771,6 @@ void Status::gimbalHandler(int key, WINDOW* win) {
       /*   } */
 
       /*   break; */
-
 
       /* default: */
       /*   if (remote_hover_) { */
@@ -1824,50 +1805,48 @@ void Status::gimbalHandler(int key, WINDOW* win) {
 /* remoteModeFly() //{ */
 
 void Status::remoteModeFly(const mrs_msgs::msg::Reference& ref_in) {
-
-  auto request = std::make_shared<mrs_msgs::srv::ReferenceStampedSrv::Request>();
+  auto request =
+      std::make_shared<mrs_msgs::srv::ReferenceStampedSrv::Request>();
 
   if (remote_global_) {
-
-    double      cmd_x;
-    double      cmd_y;
-    double      cmd_z;
-    double      cmd_hdg;
+    double cmd_x;
+    double cmd_y;
+    double cmd_z;
+    double cmd_hdg;
     std::string odom_frame;
 
     {
       std::scoped_lock lock(mutex_status_msg_);
-      cmd_x      = uav_status_.cmd_x;
-      cmd_y      = uav_status_.cmd_y;
-      cmd_z      = uav_status_.cmd_z;
-      cmd_hdg    = uav_status_.cmd_hdg;
+      cmd_x = uav_status_.cmd_x;
+      cmd_y = uav_status_.cmd_y;
+      cmd_z = uav_status_.cmd_z;
+      cmd_hdg = uav_status_.cmd_hdg;
       odom_frame = uav_status_.odom_frame;
     }
 
     request->reference.position.x = cmd_x + ref_in.position.x;
     request->reference.position.y = cmd_y + ref_in.position.y;
     request->reference.position.z = cmd_z + ref_in.position.z;
-    request->reference.heading    = cmd_hdg + ref_in.heading;
-    request->header.frame_id      = odom_frame;
+    request->reference.heading = cmd_hdg + ref_in.heading;
+    request->header.frame_id = odom_frame;
 
   } else {
-
     request->reference = ref_in;
 
     std::string uav_name;
-    double      cmd_x;
-    double      cmd_y;
-    double      cmd_z;
-    double      cmd_hdg;
+    double cmd_x;
+    double cmd_y;
+    double cmd_z;
+    double cmd_hdg;
     std::string odom_frame;
 
     {
       std::scoped_lock lock(mutex_status_msg_);
-      uav_name   = uav_status_.uav_name;
-      cmd_x      = uav_status_.cmd_x;
-      cmd_y      = uav_status_.cmd_y;
-      cmd_z      = uav_status_.cmd_z;
-      cmd_hdg    = uav_status_.cmd_hdg;
+      uav_name = uav_status_.uav_name;
+      cmd_x = uav_status_.cmd_x;
+      cmd_y = uav_status_.cmd_y;
+      cmd_z = uav_status_.cmd_z;
+      cmd_hdg = uav_status_.cmd_hdg;
       odom_frame = uav_status_.odom_frame;
     }
 
@@ -1876,17 +1855,19 @@ void Status::remoteModeFly(const mrs_msgs::msg::Reference& ref_in) {
     cmd_reference.reference.position.x = cmd_x;
     cmd_reference.reference.position.y = cmd_y;
     cmd_reference.reference.position.z = cmd_z;
-    cmd_reference.reference.heading    = cmd_hdg;
-    cmd_reference.header.frame_id      = odom_frame;
+    cmd_reference.reference.heading = cmd_hdg;
+    cmd_reference.header.frame_id = odom_frame;
 
     request->header.frame_id = uav_name + "/fcu_untilted";
-    request->header.stamp    = clock_->now();
+    request->header.stamp = clock_->now();
 
-    auto response = transformer_->transformSingle(cmd_reference, request->header.frame_id);
+    auto response =
+        transformer_->transformSingle(cmd_reference, request->header.frame_id);
     if (response) {
       cmd_reference = response.value();
     } else {
-      RCLCPP_WARN_THROTTLE(node_->get_logger(), *clock_, 1000, "Transform failed when transforming cmd_reference.");
+      RCLCPP_WARN_THROTTLE(node_->get_logger(), *clock_, 1000,
+                           "Transform failed when transforming cmd_reference.");
       return;
     }
 
@@ -1908,7 +1889,6 @@ void Status::remoteModeFly(const mrs_msgs::msg::Reference& ref_in) {
 /* stringHandler() //{ */
 
 void Status::stringHandler(WINDOW* win) {
-
   std::vector<std::string> string_vector;
 
   {
@@ -1916,18 +1896,18 @@ void Status::stringHandler(WINDOW* win) {
     string_vector = uav_status_.custom_string_outputs;
   }
 
-
-  // TODO - this section should probably not be here, but somewhere more sensible...
+  // TODO - this section should probably not be here, but somewhere more
+  // sensible...
   uint8_t gnss_fix_type;
   uint8_t gnss_num_sats;
-  double  gnss_pos_acc;
-  double  gnss_status_rate;
+  double gnss_pos_acc;
+  double gnss_status_rate;
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    gnss_fix_type    = uav_status_.hw_api_gnss_fix_type;
-    gnss_num_sats    = uav_status_.hw_api_gnss_num_sats;
-    gnss_pos_acc     = uav_status_.hw_api_gnss_pos_acc;
+    gnss_fix_type = uav_status_.hw_api_gnss_fix_type;
+    gnss_num_sats = uav_status_.hw_api_gnss_num_sats;
+    gnss_pos_acc = uav_status_.hw_api_gnss_pos_acc;
     gnss_status_rate = uav_status_.hw_api_gnss_status_hz;
   }
 
@@ -1990,7 +1970,8 @@ void Status::stringHandler(WINDOW* win) {
       stream << std::fixed << std::setprecision(2) << gnss_pos_acc;
       gnss_acc_string = stream.str();
     }
-    std::string acc_string = "Num sats: " + to_string(gnss_num_sats) + " Acc: " + gnss_acc_string + " m";
+    std::string acc_string = "Num sats: " + to_string(gnss_num_sats) +
+                             " Acc: " + gnss_acc_string + " m";
 
     string_vector.push_back(fix_string);
     string_vector.push_back(acc_string);
@@ -2012,34 +1993,31 @@ void Status::stringHandler(WINDOW* win) {
     wattron(win, A_STANDOUT);
   }
 
-
   for (unsigned long i = 0; i < string_vector.size(); i++) {
-
-    int    tmp_color          = NORMAL;
-    bool   blink              = false;
+    int tmp_color = NORMAL;
+    bool blink = false;
     string tmp_display_string = string_vector[i];
 
     if (tmp_display_string.at(0) == '-') {
-
       if (tmp_display_string.at(1) == 'r') {
         tmp_color = RED;
       } else if (tmp_display_string.at(1) == 'R') {
         tmp_color = RED;
-        blink     = true;
+        blink = true;
       }
 
       else if (tmp_display_string.at(1) == 'y') {
         tmp_color = YELLOW;
       } else if (tmp_display_string.at(1) == 'Y') {
         tmp_color = YELLOW;
-        blink     = true;
+        blink = true;
       }
 
       else if (tmp_display_string.at(1) == 'g') {
         tmp_color = GREEN;
       } else if (tmp_display_string.at(1) == 'G') {
         tmp_color = GREEN;
-        blink     = true;
+        blink = true;
       }
 
       if (tmp_color != NORMAL) {
@@ -2060,10 +2038,12 @@ void Status::stringHandler(WINDOW* win) {
     }
 
     /* if (tmp_display_string.length() > 30) { */
-    /*   printLimitedString(win, 1 + (3 * i) + 1, 1, tmp_display_string.substr(30), 30); */
+    /*   printLimitedString(win, 1 + (3 * i) + 1, 1,
+     * tmp_display_string.substr(30), 30); */
     /* } */
     /* if (i < 2) { */
-    /*   printLimitedString(win, (2 * i) + 2, 1, ("------------------------------"), 30); */
+    /*   printLimitedString(win, (2 * i) + 2, 1,
+     * ("------------------------------"), 30); */
     /* } */
 
     wattroff(win, COLOR_PAIR(tmp_color));
@@ -2079,7 +2059,6 @@ void Status::stringHandler(WINDOW* win) {
 /* genericTopicHandler() //{ */
 
 void Status::genericTopicHandler(WINDOW* win) {
-
   std::vector<mrs_msgs::msg::CustomTopic> custom_topic_vec;
 
   {
@@ -2097,23 +2076,23 @@ void Status::genericTopicHandler(WINDOW* win) {
   }
 
   if (!custom_topic_vec.empty()) {
-
     for (size_t i = 0; i < custom_topic_vec.size(); i++) {
-
       wattron(win, COLOR_PAIR(custom_topic_vec[i].topic_color));
       if (mini_) {
-        printCompressedLimitedString(win, 1 + i, 1, custom_topic_vec[i].topic_name, 4);
-        printLimitedDouble(win, 1 + i, 5, "%3.0f", custom_topic_vec[i].topic_hz, 1000);
+        printCompressedLimitedString(win, 1 + i, 1,
+                                     custom_topic_vec[i].topic_name, 4);
+        printLimitedDouble(win, 1 + i, 5, "%3.0f", custom_topic_vec[i].topic_hz,
+                           1000);
 
       } else {
         printLimitedString(win, 1 + i, 1, custom_topic_vec[i].topic_name, 15);
-        printLimitedDouble(win, 1 + i, 16, "%5.1f Hz", custom_topic_vec[i].topic_hz, 1000);
+        printLimitedDouble(win, 1 + i, 16, "%5.1f Hz",
+                           custom_topic_vec[i].topic_hz, 1000);
       }
       wattroff(win, COLOR_PAIR(custom_topic_vec[i].topic_color));
     }
 
   } else {
-
     werase(win);
   }
 
@@ -2126,7 +2105,6 @@ void Status::genericTopicHandler(WINDOW* win) {
 /* nodeStatsHandler() //{ */
 
 void Status::nodeStatsHandler(WINDOW* win) {
-
   mrs_msgs::msg::NodeCpuLoad node_cpu_load_vec;
 
   double cpu_load_total;
@@ -2134,7 +2112,7 @@ void Status::nodeStatsHandler(WINDOW* win) {
   {
     std::scoped_lock lock(mutex_status_msg_);
     node_cpu_load_vec = uav_status_.node_cpu_loads;
-    cpu_load_total    = uav_status_.cpu_load_total;
+    cpu_load_total = uav_status_.cpu_load_total;
   }
 
   werase(win);
@@ -2159,7 +2137,6 @@ void Status::nodeStatsHandler(WINDOW* win) {
     printLimitedDouble(win, 0, 37, "%5.1f", cpu_load_total, 9999);
     printLimitedString(win, 0, 43, "CPU %%", 6);
     for (size_t i = 0; i < tmp_num_lines; i++) {
-
       printLimitedString(win, 1 + i, 1, node_cpu_load_vec.node_names[i], 42);
 
       short tmp_color = GREEN;
@@ -2170,13 +2147,12 @@ void Status::nodeStatsHandler(WINDOW* win) {
       }
 
       wattron(win, COLOR_PAIR(tmp_color));
-      printLimitedDouble(win, 1 + i, 43, "%5.1f", node_cpu_load_vec.cpu_loads[i], 9999);
+      printLimitedDouble(win, 1 + i, 43, "%5.1f",
+                         node_cpu_load_vec.cpu_loads[i], 9999);
       wattroff(win, COLOR_PAIR(tmp_color));
     }
 
-
   } else {
-
     werase(win);
   }
 
@@ -2189,7 +2165,6 @@ void Status::nodeStatsHandler(WINDOW* win) {
 /* uavStateHandler() //{ */
 
 void Status::uavStateHandler(WINDOW* win) {
-
   double avg_rate;
   double color;
   double heading;
@@ -2208,40 +2183,42 @@ void Status::uavStateHandler(WINDOW* win) {
   std::string vertical_estimator;
   std::string heading_estimator;
   std::string agl_estimator;
-  double      max_flight_z;
+  double max_flight_z;
 
   bool null_tracker;
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    avg_rate   = uav_status_.odom_hz;
-    color      = uav_status_.odom_color;
-    heading    = uav_status_.odom_hdg;
-    state_x    = uav_status_.odom_x;
-    state_y    = uav_status_.odom_y;
-    state_z    = uav_status_.odom_z;
+    avg_rate = uav_status_.odom_hz;
+    color = uav_status_.odom_color;
+    heading = uav_status_.odom_hdg;
+    state_x = uav_status_.odom_x;
+    state_y = uav_status_.odom_y;
+    state_z = uav_status_.odom_z;
     odom_frame = uav_status_.odom_frame;
 
-    cmd_x   = uav_status_.cmd_x;
-    cmd_y   = uav_status_.cmd_y;
-    cmd_z   = uav_status_.cmd_z;
+    cmd_x = uav_status_.cmd_x;
+    cmd_y = uav_status_.cmd_y;
+    cmd_z = uav_status_.cmd_z;
     cmd_hdg = uav_status_.cmd_hdg;
 
-    uav_status_.odom_estimators.empty() ? main_estimator = "NONE" : main_estimator = uav_status_.odom_estimators[0];
+    uav_status_.odom_estimators.empty()
+        ? main_estimator = "NONE"
+        : main_estimator = uav_status_.odom_estimators[0];
 
     horizontal_estimator = uav_status_.horizontal_estimator;
-    vertical_estimator   = uav_status_.vertical_estimator;
-    heading_estimator    = uav_status_.heading_estimator;
-    agl_estimator        = uav_status_.agl_estimator;
+    vertical_estimator = uav_status_.vertical_estimator;
+    heading_estimator = uav_status_.heading_estimator;
+    agl_estimator = uav_status_.agl_estimator;
 
     max_flight_z = uav_status_.max_flight_z;
 
     null_tracker = uav_status_.null_tracker;
   }
 
-  double cerr_x   = std::fabs(state_x - cmd_x);
-  double cerr_y   = std::fabs(state_y - cmd_y);
-  double cerr_z   = std::fabs(state_z - cmd_z);
+  double cerr_x = std::fabs(state_x - cmd_x);
+  double cerr_y = std::fabs(state_y - cmd_y);
+  double cerr_z = std::fabs(state_z - cmd_z);
   double cerr_hdg = fabs(radians::diff(heading, cmd_hdg));
 
   werase(win);
@@ -2253,7 +2230,6 @@ void Status::uavStateHandler(WINDOW* win) {
     wattron(win, A_STANDOUT);
   }
 
-
   wattron(win, COLOR_PAIR(color));
 
   /* mini //{ */
@@ -2262,11 +2238,9 @@ void Status::uavStateHandler(WINDOW* win) {
     printLimitedDouble(win, 0, 1, "Odm %3.0f", avg_rate, 1000);
 
     if (avg_rate == 0) {
-
       printNoData(win, 0, 1);
 
     } else {
-
       printLimitedDouble(win, 1, 1, "%4.0f", state_x, 1000);
       printLimitedDouble(win, 2, 1, "%4.0f", state_y, 1000);
       printLimitedDouble(win, 3, 1, "%4.0f", state_z, 1000);
@@ -2281,15 +2255,12 @@ void Status::uavStateHandler(WINDOW* win) {
   /* standard //{ */
 
   else {
-
     printLimitedDouble(win, 0, 12, "Odom %5.1f Hz", avg_rate, 1000);
 
     if (avg_rate == 0) {
-
       printNoData(win, 0, 1);
 
     } else {
-
       printLimitedDouble(win, 1, 1, "X %7.2f", state_x, 1000);
       printLimitedDouble(win, 2, 1, "Y %7.2f", state_y, 1000);
       printLimitedDouble(win, 3, 1, "Z %7.2f", state_z, 1000);
@@ -2307,7 +2278,6 @@ void Status::uavStateHandler(WINDOW* win) {
           wattron(win, COLOR_PAIR(RED));
         }
         printLimitedDouble(win, 5, 5, "X%1.1f", cerr_x, 10);
-
 
         if (cerr_y < 0.5) {
           wattron(win, COLOR_PAIR(GREEN));
@@ -2360,7 +2330,6 @@ void Status::uavStateHandler(WINDOW* win) {
         }
       }
 
-
       printLimitedString(win, 4, 11, "ag: " + agl_estimator, 14);
 
       double dist_to_max_z = max_flight_z - state_z;
@@ -2394,34 +2363,39 @@ void Status::uavStateHandler(WINDOW* win) {
 /* controlManagerHandler() //{ */
 
 void Status::controlManagerHandler(WINDOW* win) {
-
   int16_t color;
-  bool    null_tracker;
-  double  rate;
-  string  curr_controller;
-  string  curr_tracker;
-  string  curr_gains;
-  string  curr_constraints;
-  bool    callbacks_enabled;
-  bool    rc_mode;
-  bool    have_goal;
-  bool    tracking_trajectory;
+  bool null_tracker;
+  double rate;
+  string curr_controller;
+  string curr_tracker;
+  string curr_gains;
+  string curr_constraints;
+  bool callbacks_enabled;
+  bool rc_mode;
+  bool have_goal;
+  bool tracking_trajectory;
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    rate  = uav_status_.control_manager_diag_hz;
+    rate = uav_status_.control_manager_diag_hz;
     color = uav_status_.control_manager_diag_color;
 
-    uav_status_.controllers.empty() ? curr_controller = "NONE" : curr_controller = uav_status_.controllers[0];
-    uav_status_.trackers.empty() ? curr_tracker = "NONE" : curr_tracker = uav_status_.trackers[0];
-    uav_status_.gains.empty() ? curr_gains = "NONE" : curr_gains = uav_status_.gains[0];
-    uav_status_.constraints.empty() ? curr_constraints = "NONE" : curr_constraints = uav_status_.constraints[0];
+    uav_status_.controllers.empty()
+        ? curr_controller = "NONE"
+        : curr_controller = uav_status_.controllers[0];
+    uav_status_.trackers.empty() ? curr_tracker = "NONE"
+                                 : curr_tracker = uav_status_.trackers[0];
+    uav_status_.gains.empty() ? curr_gains = "NONE"
+                              : curr_gains = uav_status_.gains[0];
+    uav_status_.constraints.empty()
+        ? curr_constraints = "NONE"
+        : curr_constraints = uav_status_.constraints[0];
 
-    callbacks_enabled   = uav_status_.callbacks_enabled;
-    rc_mode             = uav_status_.rc_mode;
-    have_goal           = uav_status_.have_goal;
+    callbacks_enabled = uav_status_.callbacks_enabled;
+    rc_mode = uav_status_.rc_mode;
+    have_goal = uav_status_.have_goal;
     tracking_trajectory = uav_status_.tracking_trajectory;
-    null_tracker        = uav_status_.null_tracker;
+    null_tracker = uav_status_.null_tracker;
   }
 
   werase(win);
@@ -2441,7 +2415,6 @@ void Status::controlManagerHandler(WINDOW* win) {
     printLimitedDouble(win, 0, 1, "Ctr %3.0f", rate, 1000);
 
     if (rate == 0.0) {
-
       printNoData(win, 0, 1);
       wattron(win, COLOR_PAIR(RED));
       mvwprintw(win, 1, 1, "ERR");
@@ -2449,8 +2422,8 @@ void Status::controlManagerHandler(WINDOW* win) {
       wattroff(win, COLOR_PAIR(color));
 
     } else {
-
-      if (curr_controller != "Se3Controller" && curr_controller != "MpcController") {
+      if (curr_controller != "Se3Controller" &&
+          curr_controller != "MpcController") {
         wattron(win, COLOR_PAIR(RED));
         printLimitedString(win, 1, 1, curr_controller, 3);
       } else {
@@ -2491,12 +2464,10 @@ void Status::controlManagerHandler(WINDOW* win) {
   /* standrad //{ */
 
   else {
-
     /* printLimitedString(win, 0, 10, "Control Manager", 15); */
     printLimitedDouble(win, 0, 1, "Control Manager %5.1f Hz", rate, 1000);
 
     if (rate == 0.0) {
-
       printNoData(win, 0, 1);
 
       wattron(win, COLOR_PAIR(RED));
@@ -2505,12 +2476,15 @@ void Status::controlManagerHandler(WINDOW* win) {
       wattroff(win, COLOR_PAIR(color));
 
     } else {
-      if (curr_controller != "Se3Controller" && curr_controller != "MpcController") {
+      if (curr_controller != "Se3Controller" &&
+          curr_controller != "MpcController") {
         wattron(win, COLOR_PAIR(RED));
       }
       printLimitedString(win, 1, 1, curr_controller, 13);
       wattron(win, COLOR_PAIR(NORMAL));
-      printLimitedString(win, 1, 1 + std::min(int(curr_controller.length()), 13), "/" + curr_gains, 10);
+      printLimitedString(win, 1,
+                         1 + std::min(int(curr_controller.length()), 13),
+                         "/" + curr_gains, 10);
       wattron(win, COLOR_PAIR(color));
 
       if (null_tracker) {
@@ -2527,7 +2501,8 @@ void Status::controlManagerHandler(WINDOW* win) {
 
       printLimitedString(win, 2, 1, curr_tracker, 13);
       wattron(win, COLOR_PAIR(NORMAL));
-      printLimitedString(win, 2, 1 + std::min(int(curr_tracker.length()), 13), "/" + curr_constraints, 8);
+      printLimitedString(win, 2, 1 + std::min(int(curr_tracker.length()), 13),
+                         "/" + curr_constraints, 8);
       wattron(win, COLOR_PAIR(color));
     }
 
@@ -2573,44 +2548,43 @@ void Status::controlManagerHandler(WINDOW* win) {
 /* hwApiStateHander() //{ */
 
 void Status::hwApiStateHander(WINDOW* win) {
-
-  int16_t     color;
-  double      hw_api_rate;
-  double      state_rate;
-  double      cmd_rate;
-  double      battery_rate;
-  bool        gnss_ok;
-  bool        armed;
+  int16_t color;
+  double hw_api_rate;
+  double state_rate;
+  double cmd_rate;
+  double battery_rate;
+  bool gnss_ok;
+  bool armed;
   std::string mode;
-  double      battery_volt;
-  double      battery_curr;
-  double      battery_wh_drained;
-  double      thrust;
-  double      mass_estimate;
-  double      mass_set;
-  double      gnss_qual;
-  double      mag_norm;
-  double      mag_norm_rate;
+  double battery_volt;
+  double battery_curr;
+  double battery_wh_drained;
+  double thrust;
+  double mass_estimate;
+  double mass_set;
+  double gnss_qual;
+  double mag_norm;
+  double mag_norm_rate;
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    color              = uav_status_.hw_api_color;
-    hw_api_rate        = uav_status_.hw_api_hz;
-    state_rate         = uav_status_.hw_api_state_hz;
-    cmd_rate           = uav_status_.hw_api_cmd_hz;
-    battery_rate       = uav_status_.hw_api_battery_hz;
-    gnss_ok            = uav_status_.hw_api_gnss_ok;
-    armed              = uav_status_.hw_api_armed;
-    mode               = uav_status_.hw_api_mode;
-    battery_volt       = uav_status_.battery_volt;
-    battery_curr       = uav_status_.battery_curr;
+    color = uav_status_.hw_api_color;
+    hw_api_rate = uav_status_.hw_api_hz;
+    state_rate = uav_status_.hw_api_state_hz;
+    cmd_rate = uav_status_.hw_api_cmd_hz;
+    battery_rate = uav_status_.hw_api_battery_hz;
+    gnss_ok = uav_status_.hw_api_gnss_ok;
+    armed = uav_status_.hw_api_armed;
+    mode = uav_status_.hw_api_mode;
+    battery_volt = uav_status_.battery_volt;
+    battery_curr = uav_status_.battery_curr;
     battery_wh_drained = uav_status_.battery_wh_drained;
-    thrust             = uav_status_.thrust;
-    mass_estimate      = uav_status_.mass_estimate;
-    mass_set           = uav_status_.mass_set;
-    gnss_qual          = uav_status_.hw_api_gnss_qual;
-    mag_norm           = uav_status_.mag_norm;
-    mag_norm_rate      = uav_status_.mag_norm_hz;
+    thrust = uav_status_.thrust;
+    mass_estimate = uav_status_.mass_estimate;
+    mass_set = uav_status_.mass_set;
+    gnss_qual = uav_status_.hw_api_gnss_qual;
+    mag_norm = uav_status_.mag_norm;
+    mag_norm_rate = uav_status_.mag_norm_hz;
   }
 
   std::string tmp_string;
@@ -2623,7 +2597,6 @@ void Status::hwApiStateHander(WINDOW* win) {
   if (_light_) {
     wattron(win, A_STANDOUT);
   }
-
 
   wattron(win, COLOR_PAIR(color));
 
@@ -2638,14 +2611,12 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (state_rate == 0) {
-
       wattron(win, COLOR_PAIR(RED));
       printLimitedString(win, 1, 1, "ERR", 3);
       printLimitedString(win, 2, 1, "ERR", 3);
       wattroff(win, COLOR_PAIR(RED));
 
     } else {
-
       if (armed) {
         tmp_string = "ARM";
         wattron(win, COLOR_PAIR(GREEN));
@@ -2666,14 +2637,13 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (battery_rate == 0) {
-
       printLimitedString(win, 3, 1, "ERR", 3);
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
 
-      (battery_volt > 17.0) ? (battery_volt = battery_volt / 6) : (battery_volt = battery_volt / 4);
+      (battery_volt > 17.0) ? (battery_volt = battery_volt / 6)
+                            : (battery_volt = battery_volt / 4);
 
       if (battery_volt < 3.6) {
         wattron(win, COLOR_PAIR(RED));
@@ -2683,13 +2653,10 @@ void Status::hwApiStateHander(WINDOW* win) {
       printLimitedString(win, 3, 1, "Bat", 3);
     }
 
-
     if (cmd_rate == 0) {
-
       printLimitedString(win, 3, 5, "ERR", 3);
 
     } else {
-
       if (thrust > 0.75) {
         wattron(win, COLOR_PAIR(RED));
       } else if (thrust > 0.65 && color != RED) {
@@ -2698,15 +2665,13 @@ void Status::hwApiStateHander(WINDOW* win) {
       printLimitedDouble(win, 3, 5, ".%2.0f", thrust * 100, 100);
       wattron(win, COLOR_PAIR(color));
 
-      color            = GREEN;
+      color = GREEN;
       double mass_diff = fabs(mass_estimate - mass_set) / mass_set;
 
       if (mass_diff > 0.3) {
-
         color = RED;
 
       } else if (mass_diff > 0.2) {
-
         color = YELLOW;
       }
 
@@ -2714,13 +2679,11 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (!gnss_ok) {
-
       wattron(win, COLOR_PAIR(RED));
       printLimitedString(win, 1, 5, "GPS", 6);
       wattroff(win, COLOR_PAIR(RED));
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
       printLimitedString(win, 1, 5, "GPS", 6);
       wattroff(win, COLOR_PAIR(GREEN));
@@ -2750,17 +2713,14 @@ void Status::hwApiStateHander(WINDOW* win) {
   /* standard  //{ */
 
   else {
-
     printLimitedDouble(win, 0, 9, "HW Api %5.1f Hz", hw_api_rate, 1000);
     wattroff(win, COLOR_PAIR(color));
 
     if (hw_api_rate == 0) {
-
       printNoData(win, 0, 1);
     }
 
     if (state_rate == 0) {
-
       wattron(win, COLOR_PAIR(RED));
       printLimitedString(win, 1, 1, "State: ", 15);
       printNoData(win, 1, 9);
@@ -2769,7 +2729,6 @@ void Status::hwApiStateHander(WINDOW* win) {
       wattroff(win, COLOR_PAIR(RED));
 
     } else {
-
       if (armed) {
         tmp_string = "ARMED";
         wattron(win, COLOR_PAIR(GREEN));
@@ -2790,14 +2749,13 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (battery_rate == 0) {
-
       printNoData(win, 4, 1, "Batt:  ");
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
 
-      (battery_volt > 17.0) ? (battery_volt = battery_volt / 6) : (battery_volt = battery_volt / 4);
+      (battery_volt > 17.0) ? (battery_volt = battery_volt / 6)
+                            : (battery_volt = battery_volt / 4);
 
       if (battery_volt < 3.6) {
         wattron(win, COLOR_PAIR(RED));
@@ -2810,11 +2768,9 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (mag_norm_rate == 0) {
-
       printNoData(win, 3, 1, "Mag:  ");
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
 
       if (mag_norm > 0.9 || mag_norm < 0.25) {
@@ -2826,11 +2782,9 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (cmd_rate == 0) {
-
       printNoData(win, 5, 1, "Thrst: ");
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
 
       if (thrust > 0.75) {
@@ -2841,20 +2795,17 @@ void Status::hwApiStateHander(WINDOW* win) {
       printLimitedDouble(win, 5, 1, "Thrst: %4.2f", thrust, 1.01);
       wattron(win, COLOR_PAIR(color));
 
-      color            = GREEN;
+      color = GREEN;
       double mass_diff = fabs(mass_estimate - mass_set) / mass_set;
 
       if (mass_diff > 0.3) {
-
         color = RED;
 
       } else if (mass_diff > 0.2) {
-
         color = YELLOW;
       }
 
       if (mass_set > 10.0 || mass_estimate > 10.0) {
-
         wattron(win, COLOR_PAIR(NORMAL));
         printLimitedDouble(win, 5, 13, "%.1f/", mass_set, 99.99);
         wattron(win, COLOR_PAIR(color));
@@ -2862,7 +2813,6 @@ void Status::hwApiStateHander(WINDOW* win) {
         printLimitedString(win, 5, 22, "kg", 2);
 
       } else {
-
         wattron(win, COLOR_PAIR(NORMAL));
         printLimitedDouble(win, 5, 15, "%.1f/", mass_set, 99.99);
         wattron(win, COLOR_PAIR(color));
@@ -2872,13 +2822,11 @@ void Status::hwApiStateHander(WINDOW* win) {
     }
 
     if (!gnss_ok) {
-
       wattron(win, COLOR_PAIR(RED));
       printLimitedString(win, 1, 18, "NO_GPS", 6);
       wattroff(win, COLOR_PAIR(RED));
 
     } else {
-
       wattron(win, COLOR_PAIR(GREEN));
       printLimitedString(win, 1, 18, "GPS_OK", 6);
       wattroff(win, COLOR_PAIR(GREEN));
@@ -2909,7 +2857,6 @@ void Status::hwApiStateHander(WINDOW* win) {
 /* topLineHandler() //{ */
 
 void Status::topLineHandler(WINDOW* win) {
-
   werase(win);
   int secs_flown;
 
@@ -2934,16 +2881,16 @@ void Status::topLineHandler(WINDOW* win) {
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    uav_name                     = uav_status_.uav_name;
-    uav_type                     = uav_status_.uav_type;
-    collision_avoidance_enabled  = uav_status_.collision_avoidance_enabled;
-    avoiding_collision_          = uav_status_.avoiding_collision;
+    uav_name = uav_status_.uav_name;
+    uav_type = uav_status_.uav_type;
+    collision_avoidance_enabled = uav_status_.collision_avoidance_enabled;
+    avoiding_collision_ = uav_status_.avoiding_collision;
     automatic_start_can_takeoff_ = uav_status_.automatic_start_can_takeoff;
-    null_tracker_                = uav_status_.null_tracker;
-    num_other_uavs               = uav_status_.num_other_uavs;
+    null_tracker_ = uav_status_.null_tracker;
+    num_other_uavs = uav_status_.num_other_uavs;
   }
 
-  double tmp_time       = (clock_->now() - last_time_got_data_).seconds();
+  double tmp_time = (clock_->now() - last_time_got_data_).seconds();
   double tmp_short_time = (clock_->now() - last_time_got_short_data_).seconds();
 
   if (tmp_short_time < 3.0) {
@@ -3000,9 +2947,7 @@ void Status::topLineHandler(WINDOW* win) {
       wattroff(win, COLOR_PAIR(RED));
     }
   } else {
-
     if (collision_avoidance_enabled) {
-
       if (avoiding_collision_) {
         wattron(win, COLOR_PAIR(RED));
         wattron(win, A_BLINK);
@@ -3048,7 +2993,6 @@ void Status::topLineHandler(WINDOW* win) {
 /* generalInfoHandeler() //{ */
 
 void Status::generalInfoHandeler(WINDOW* win) {
-
   werase(win);
   wattron(win, A_BOLD);
   wattron(win, COLOR_PAIR(NORMAL));
@@ -3077,8 +3021,8 @@ void Status::generalInfoHandeler(WINDOW* win) {
 
 /* callbackUavStatus() //{ */
 
-void Status::callbackUavStatus(const mrs_msgs::msg::UavStatus::ConstSharedPtr msg) {
-
+void Status::callbackUavStatus(
+    const mrs_msgs::msg::UavStatus::ConstSharedPtr msg) {
   if (!initialized_) {
     return;
   }
@@ -3088,7 +3032,7 @@ void Status::callbackUavStatus(const mrs_msgs::msg::UavStatus::ConstSharedPtr ms
     uav_status_ = *msg;
   }
 
-  last_time_got_data_       = clock_->now();
+  last_time_got_data_ = clock_->now();
   last_time_got_short_data_ = clock_->now();
 }
 
@@ -3096,8 +3040,8 @@ void Status::callbackUavStatus(const mrs_msgs::msg::UavStatus::ConstSharedPtr ms
 
 /* callbackUavStatusShort() //{ */
 
-void Status::callbackUavStatusShort(const mrs_msgs::msg::UavStatusShort::ConstSharedPtr msg) {
-
+void Status::callbackUavStatusShort(
+    const mrs_msgs::msg::UavStatusShort::ConstSharedPtr msg) {
   if (!initialized_) {
     return;
   }
@@ -3105,16 +3049,16 @@ void Status::callbackUavStatusShort(const mrs_msgs::msg::UavStatusShort::ConstSh
   {
     std::scoped_lock lock(mutex_status_msg_);
 
-    uav_status_.odom_x     = msg->odom_x;
-    uav_status_.odom_y     = msg->odom_y;
-    uav_status_.odom_z     = msg->odom_z;
-    uav_status_.odom_hdg   = msg->odom_hdg;
+    uav_status_.odom_x = msg->odom_x;
+    uav_status_.odom_y = msg->odom_y;
+    uav_status_.odom_z = msg->odom_z;
+    uav_status_.odom_hdg = msg->odom_hdg;
     uav_status_.odom_color = msg->odom_color;
-    uav_status_.odom_hz    = msg->odom_hz;
+    uav_status_.odom_hz = msg->odom_hz;
 
-    uav_status_.cmd_x   = msg->cmd_x;
-    uav_status_.cmd_y   = msg->cmd_y;
-    uav_status_.cmd_z   = msg->cmd_z;
+    uav_status_.cmd_x = msg->cmd_x;
+    uav_status_.cmd_y = msg->cmd_y;
+    uav_status_.cmd_z = msg->cmd_z;
     uav_status_.cmd_hdg = msg->cmd_hdg;
   }
 
@@ -3126,52 +3070,51 @@ void Status::callbackUavStatusShort(const mrs_msgs::msg::UavStatusShort::ConstSh
 /* prefillUavStatus() //{ */
 
 void Status::prefillUavStatus() {
-
   std::scoped_lock lock(mutex_status_msg_);
 
-  uav_status_.uav_name                = "N/A";
-  uav_status_.uav_type                = "N/A";
-  uav_status_.uav_mass                = 0.0;
+  uav_status_.uav_name = "N/A";
+  uav_status_.uav_type = "N/A";
+  uav_status_.uav_mass = 0.0;
   uav_status_.control_manager_diag_hz = 0.0;
   uav_status_.controllers.clear();
   uav_status_.gains.clear();
   uav_status_.trackers.clear();
   uav_status_.constraints.clear();
   uav_status_.secs_flown = 0;
-  uav_status_.odom_hz    = 0.0;
-  uav_status_.odom_x     = 0.0;
-  uav_status_.odom_y     = 0.0;
-  uav_status_.odom_z     = 0.0;
-  uav_status_.odom_hdg   = 0.0;
+  uav_status_.odom_hz = 0.0;
+  uav_status_.odom_x = 0.0;
+  uav_status_.odom_y = 0.0;
+  uav_status_.odom_z = 0.0;
+  uav_status_.odom_hdg = 0.0;
   uav_status_.odom_frame = "N/A";
   uav_status_.odom_estimators.clear();
-  uav_status_.max_flight_z          = 0.0;
-  uav_status_.cpu_load              = 0.0;
-  uav_status_.cpu_ghz               = 0.0;
-  uav_status_.free_ram              = 0.0;
-  uav_status_.free_hdd              = 0.0;
-  uav_status_.hw_api_hz             = 0.0;
-  uav_status_.hw_api_armed          = false;
-  uav_status_.hw_api_mode           = "N/A";
-  uav_status_.hw_api_gnss_ok        = false;
-  uav_status_.hw_api_gnss_qual      = 0.0;
-  uav_status_.hw_api_gnss_fix_type  = 0.0;
-  uav_status_.hw_api_gnss_num_sats  = 0.0;
-  uav_status_.hw_api_gnss_pos_acc   = 0.0;
+  uav_status_.max_flight_z = 0.0;
+  uav_status_.cpu_load = 0.0;
+  uav_status_.cpu_ghz = 0.0;
+  uav_status_.free_ram = 0.0;
+  uav_status_.free_hdd = 0.0;
+  uav_status_.hw_api_hz = 0.0;
+  uav_status_.hw_api_armed = false;
+  uav_status_.hw_api_mode = "N/A";
+  uav_status_.hw_api_gnss_ok = false;
+  uav_status_.hw_api_gnss_qual = 0.0;
+  uav_status_.hw_api_gnss_fix_type = 0.0;
+  uav_status_.hw_api_gnss_num_sats = 0.0;
+  uav_status_.hw_api_gnss_pos_acc = 0.0;
   uav_status_.hw_api_gnss_status_hz = 0.0;
-  uav_status_.battery_volt          = 0.0;
-  uav_status_.battery_curr          = 0.0;
-  uav_status_.thrust                = 0.0;
-  uav_status_.mass_estimate         = 0.0;
-  uav_status_.mass_set              = 0.0;
+  uav_status_.battery_volt = 0.0;
+  uav_status_.battery_curr = 0.0;
+  uav_status_.thrust = 0.0;
+  uav_status_.mass_estimate = 0.0;
+  uav_status_.mass_set = 0.0;
   uav_status_.custom_topics.clear();
   uav_status_.custom_string_outputs.clear();
-  uav_status_.flying_normally     = false;
-  uav_status_.null_tracker        = true;
-  uav_status_.have_goal           = false;
-  uav_status_.rc_mode             = false;
+  uav_status_.flying_normally = false;
+  uav_status_.null_tracker = true;
+  uav_status_.have_goal = false;
+  uav_status_.rc_mode = false;
   uav_status_.tracking_trajectory = false;
-  uav_status_.callbacks_enabled   = false;
+  uav_status_.callbacks_enabled = false;
 }
 
 //}
@@ -3181,7 +3124,6 @@ void Status::prefillUavStatus() {
 /* setupMainMenu() //{ */
 
 void Status::setupMainMenu() {
-
   service_vec_.clear();
 
   bool null_tracker;
@@ -3192,18 +3134,18 @@ void Status::setupMainMenu() {
   }
 
   for (unsigned long i = 0; i < service_input_vec_.size(); i++) {
-
     if (null_tracker && (i == 0 || i == 1)) {
       continue;  // disable land and land home if we are not flying
     }
 
     if (!null_tracker && i == 2) {
-
       continue;  // disable takeoff if flying
     }
 
     std::vector<std::string> results;
-    boost::split(results, service_input_vec_[i], [](char c) { return c == ' '; });  // split the input string into words and put them in results vector
+    boost::split(results, service_input_vec_[i], [](char c) {
+      return c == ' ';
+    });  // split the input string into words and put them in results vector
 
     for (unsigned long j = 2; j < results.size(); j++) {
       results[1] = results[1] + " " + results[j];
@@ -3215,8 +3157,6 @@ void Status::setupMainMenu() {
       service_name = results[0];
 
     } else {
-
-
       std::string uav_name;
 
       {
@@ -3229,7 +3169,9 @@ void Status::setupMainMenu() {
 
     service tmp_service(service_name, results[1]);
 
-    tmp_service.service_client = mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger>(node_, service_name);
+    tmp_service.service_client =
+        mrs_lib::ServiceClientHandler<std_srvs::srv::Trigger>(node_,
+                                                              service_name);
 
     service_vec_.push_back(tmp_service);
   }
@@ -3255,7 +3197,6 @@ void Status::setupMainMenu() {
 /* setupGotoMenu() //{ */
 
 void Status::setupGotoMenu() {
-
   std::string odom_frame;
 
   {
@@ -3285,7 +3226,6 @@ void Status::setupGotoMenu() {
 /* setupDisplayMenu() //{ */
 
 void Status::setupDisplayMenu() {
-
   setupDisplayText();
 
   Menu menu(1, 32, display_menu_text_);
@@ -3297,11 +3237,10 @@ void Status::setupDisplayMenu() {
 /* setupDisplayText() //{ */
 
 void Status::setupDisplayText() {
-
   display_menu_text_.clear();
 
-  char                     command[50] = "tmux list-windows | cut -d' ' -f-2";
-  std::string              response    = callTerminal(command);
+  char command[50] = "tmux list-windows | cut -d' ' -f-2";
+  std::string response = callTerminal(command);
   std::vector<std::string> results;
   boost::split(results, response, boost::is_any_of("\n"));
 
@@ -3323,19 +3262,18 @@ void Status::setupDisplayText() {
 /* printMemLoad() //{ */
 
 void Status::printMemLoad(WINDOW* win) {
-
   double total_ram;
   double free_ram;
 
   {
     std::scoped_lock lock(mutex_status_msg_);
-    free_ram  = uav_status_.free_ram;
+    free_ram = uav_status_.free_ram;
     total_ram = uav_status_.total_ram;
   }
 
   double used_ram = total_ram - free_ram;
 
-  int    tmp_color = GREEN;
+  int tmp_color = GREEN;
   double ram_ratio = used_ram / total_ram;
   if (ram_ratio > 0.7) {
     tmp_color = RED;
@@ -3358,7 +3296,6 @@ void Status::printMemLoad(WINDOW* win) {
 /* printCpuLoad() //{ */
 
 void Status::printCpuLoad(WINDOW* win) {
-
   double cpu_load;
   {
     std::scoped_lock lock(mutex_status_msg_);
@@ -3384,7 +3321,6 @@ void Status::printCpuLoad(WINDOW* win) {
 /* printCpuTemp() //{ */
 
 void Status::printCpuTemp(WINDOW* win) {
-
   double cpu_temp;
   {
     std::scoped_lock lock(mutex_status_msg_);
@@ -3411,7 +3347,6 @@ void Status::printCpuTemp(WINDOW* win) {
 /* printCpuFreq() //{ */
 
 void Status::printCpuFreq(WINDOW* win) {
-
   double avg_cpu_ghz;
   {
     std::scoped_lock lock(mutex_status_msg_);
@@ -3427,7 +3362,6 @@ void Status::printCpuFreq(WINDOW* win) {
 /* printDiskSpace() //{ */
 
 void Status::printDiskSpace(WINDOW* win) {
-
   int gigas;
   {
     std::scoped_lock lock(mutex_status_msg_);
@@ -3456,7 +3390,6 @@ void Status::printDiskSpace(WINDOW* win) {
     }
   }
   if (gigas < 10000) {
-
     if (mini_) {
       printLimitedString(win, 1, 5, "HDD", 3);
       printLimitedInt(win, 2, 5, "%i", gigas / 10, 1000);
@@ -3478,7 +3411,6 @@ void Status::printDiskSpace(WINDOW* win) {
 /* printServiceResult() //{ */
 
 void Status::printServiceResult(bool success, string msg) {
-
   if (_light_) {
     wattron(bottom_window_, A_STANDOUT);
   }
@@ -3488,16 +3420,15 @@ void Status::printServiceResult(bool success, string msg) {
   wattron(bottom_window_, A_BOLD);
   wattron(bottom_window_, COLOR_PAIR(GREEN));
 
-
   if (success) {
-
-    printLimitedString(bottom_window_, 0, 0, "Service call success: " + msg, 120);
+    printLimitedString(bottom_window_, 0, 0, "Service call success: " + msg,
+                       120);
 
   } else {
-
     wattron(bottom_window_, COLOR_PAIR(RED));
 
-    printLimitedString(bottom_window_, 0, 0, "Service call failed: " + msg, 120);
+    printLimitedString(bottom_window_, 0, 0, "Service call failed: " + msg,
+                       120);
 
     wattroff(bottom_window_, COLOR_PAIR(RED));
   }
@@ -3512,11 +3443,11 @@ void Status::printServiceResult(bool success, string msg) {
 
 /* printLimitedInt() //{ */
 
-void Status::printLimitedInt(WINDOW* win, int y, int x, string str_in, int num, int limit) {
-
+void Status::printLimitedInt(WINDOW* win, int y, int x, string str_in, int num,
+                             int limit) {
   if (abs(num) > limit) {
-
-    // if the number is larger than limit, replace it with scientific notation - 1e+01 to fit the screen
+    // if the number is larger than limit, replace it with scientific notation -
+    // 1e+01 to fit the screen
     for (unsigned long i = 0; i < str_in.length() - 2; i++) {
       if (str_in[i] == '.' && str_in[i + 2] == 'i') {
         str_in[i + 1] = '0';
@@ -3535,11 +3466,11 @@ void Status::printLimitedInt(WINDOW* win, int y, int x, string str_in, int num, 
 
 /* printLimitedDouble() //{ */
 
-void Status::printLimitedDouble(WINDOW* win, int y, int x, string str_in, double num, double limit) {
-
+void Status::printLimitedDouble(WINDOW* win, int y, int x, string str_in,
+                                double num, double limit) {
   if (fabs(num) > limit) {
-
-    // if the number is larger than limit, replace it with scientific notation - 1e+01 to fit the screen
+    // if the number is larger than limit, replace it with scientific notation -
+    // 1e+01 to fit the screen
     for (unsigned long i = 0; i < str_in.length() - 2; i++) {
       if (str_in[i] == '.' && str_in[i + 2] == 'f') {
         str_in[i + 1] = '0';
@@ -3558,8 +3489,8 @@ void Status::printLimitedDouble(WINDOW* win, int y, int x, string str_in, double
 
 /* printLimitedString() //{ */
 
-void Status::printLimitedString(WINDOW* win, int y, int x, string str_in, unsigned long limit) {
-
+void Status::printLimitedString(WINDOW* win, int y, int x, string str_in,
+                                unsigned long limit) {
   if (str_in.length() > limit) {
     str_in.resize(limit);
   }
@@ -3573,12 +3504,13 @@ void Status::printLimitedString(WINDOW* win, int y, int x, string str_in, unsign
 
 /* printCompressedLimitedString() //{ */
 
-void Status::printCompressedLimitedString(WINDOW* win, int y, int x, string str_in, unsigned long limit) {
-
+void Status::printCompressedLimitedString(WINDOW* win, int y, int x,
+                                          string str_in, unsigned long limit) {
   std::string chars("aeiouAEIOU :");
 
   for (size_t i = 0; i < chars.length(); i++) {
-    str_in.erase(std::remove(str_in.begin() + 1, str_in.end(), chars.at(i)), str_in.end());
+    str_in.erase(std::remove(str_in.begin() + 1, str_in.end(), chars.at(i)),
+                 str_in.end());
   }
 
   if (str_in.length() > limit) {
@@ -3595,7 +3527,6 @@ void Status::printCompressedLimitedString(WINDOW* win, int y, int x, string str_
 /* printNoData() //{ */
 
 void Status::printNoData(WINDOW* win, int y, int x) {
-
   wattron(win, A_BLINK);
   wattron(win, COLOR_PAIR(RED));
   if (mini_) {
@@ -3608,7 +3539,6 @@ void Status::printNoData(WINDOW* win, int y, int x) {
 }
 
 void Status::printNoData(WINDOW* win, int y, int x, string text) {
-
   wattron(win, COLOR_PAIR(RED));
   mvwprintw(win, y, x, text.c_str());
   printNoData(win, y, x + text.length());
@@ -3619,7 +3549,6 @@ void Status::printNoData(WINDOW* win, int y, int x, string text) {
 /* printError() //{ */
 
 void Status::printError(string msg) {
-
   wattron(debug_window_, COLOR_PAIR(RED));
   printLimitedString(debug_window_, 0, 0, msg, 120);
   wattroff(debug_window_, COLOR_PAIR(RED));
@@ -3632,7 +3561,6 @@ void Status::printError(string msg) {
 /* printDebug() //{ */
 
 void Status::printDebug(string msg) {
-
   printLimitedString(debug_window_, 0, 0, msg, 120);
 
   wnoutrefresh(debug_window_);
@@ -3643,25 +3571,51 @@ void Status::printDebug(string msg) {
 /* printHelp() //{ */
 
 void Status::printHelp() {
-
   werase(debug_window_);
 
   if (help_active_) {
-
     printLimitedString(debug_window_, 1, 0, "How to use mrs_status:", 120);
-    printLimitedString(debug_window_, 2, 0, "Press the 'm' key to enter a services menu", 120);
-    printLimitedString(debug_window_, 3, 0, "Press the 'g' key to set a goto reference", 120);
-    printLimitedString(debug_window_, 4, 0, "Press the 'M' key to switch into minimalistic mode, which takes less screen space", 120);
-    printLimitedString(debug_window_, 5, 0, "Press the 'R' key to enter 'remote' mode to take direct control of the uav with your keyboad", 120);
-    printLimitedString(debug_window_, 6, 0, "   In remote mode, use these keys to control the drone:", 120);
-    printLimitedString(debug_window_, 7, 0, "      'w','s','a','d' to control pitch and roll ('h','j','k','l' works too)", 120);
-    printLimitedString(debug_window_, 8, 0, "      'q','e'         to control heading", 120);
-    printLimitedString(debug_window_, 9, 0, "      'r','f'         to control altitude", 120);
-    printLimitedString(debug_window_, 10, 0, "      'G'             to switch controlling in the FCU frame (local) or the world frame (global)", 120);
-    printLimitedString(debug_window_, 12, 0, "You can also display any info from your node in the mrs_status:", 120);
-    printLimitedString(debug_window_, 14, 0, "   topic: mrs_status/display_string (std_msgs::String)", 120);
-    printLimitedString(debug_window_, 15, 0, "   - Publish any string to this topic and it will show up in mrs_status", 120);
-    printLimitedString(debug_window_, 17, 0, "Press 'D' to display info from other panes of this tmux session, up to 2 panes can be viewed", 120);
+    printLimitedString(debug_window_, 2, 0,
+                       "Press the 'm' key to enter a services menu", 120);
+    printLimitedString(debug_window_, 3, 0,
+                       "Press the 'g' key to set a goto reference", 120);
+    printLimitedString(debug_window_, 4, 0,
+                       "Press the 'M' key to switch into minimalistic mode, "
+                       "which takes less screen space",
+                       120);
+    printLimitedString(debug_window_, 5, 0,
+                       "Press the 'R' key to enter 'remote' mode to take "
+                       "direct control of the uav with your keyboad",
+                       120);
+    printLimitedString(
+        debug_window_, 6, 0,
+        "   In remote mode, use these keys to control the drone:", 120);
+    printLimitedString(debug_window_, 7, 0,
+                       "      'w','s','a','d' to control pitch and roll "
+                       "('h','j','k','l' works too)",
+                       120);
+    printLimitedString(debug_window_, 8, 0,
+                       "      'q','e'         to control heading", 120);
+    printLimitedString(debug_window_, 9, 0,
+                       "      'r','f'         to control altitude", 120);
+    printLimitedString(debug_window_, 10, 0,
+                       "      'G'             to switch controlling in the FCU "
+                       "frame (local) or the world frame (global)",
+                       120);
+    printLimitedString(
+        debug_window_, 12, 0,
+        "You can also display any info from your node in the mrs_status:", 120);
+    printLimitedString(debug_window_, 14, 0,
+                       "   topic: mrs_status/display_string (std_msgs::String)",
+                       120);
+    printLimitedString(debug_window_, 15, 0,
+                       "   - Publish any string to this topic and it will show "
+                       "up in mrs_status",
+                       120);
+    printLimitedString(debug_window_, 17, 0,
+                       "Press 'D' to display info from other panes of this "
+                       "tmux session, up to 2 panes can be viewed",
+                       120);
     printLimitedString(debug_window_, 19, 0, "Press 'h' to hide help", 120);
 
   } else {
@@ -3676,7 +3630,6 @@ void Status::printHelp() {
 /* printTmuxDump() //{ */
 
 void Status::printTmuxDump() {
-
   werase(debug_window_);
   printBox(debug_window_);
 
@@ -3688,9 +3641,12 @@ void Status::printTmuxDump() {
   getmaxyx(sub_tmux_window_1_, tmp_rows, tmp_cols);
 
   for (size_t i = 0; i < selected_tmux_window_.size(); i++) {
-    std::string command_str = "tmux resize-window -t " + session_name_ + ":" + std::to_string(selected_tmux_window_[i]) + " -A";
+    std::string command_str = "tmux resize-window -t " + session_name_ + ":" +
+                              std::to_string(selected_tmux_window_[i]) + " -A";
     callTerminal(command_str.c_str());
-    command_str = "tmux capture-pane -pt " + session_name_ + ":" + std::to_string(selected_tmux_window_[i]) + " -S 0 | tail -n " + std::to_string(tmp_rows + 1);
+    command_str = "tmux capture-pane -pt " + session_name_ + ":" +
+                  std::to_string(selected_tmux_window_[i]) +
+                  " -S 0 | tail -n " + std::to_string(tmp_rows + 1);
     std::string response = callTerminal(command_str.c_str());
     switch (i) {
       case 0: {
@@ -3707,10 +3663,12 @@ void Status::printTmuxDump() {
   mvwhline(debug_window_, tmp_rows + 1, 1, 0, tmp_cols - 1);
 
   if (selected_tmux_window_.size() > 1) {
-    printLimitedString(debug_window_, tmp_rows + 1, 3, display_menu_text_[selected_tmux_window_[1]], 50);
+    printLimitedString(debug_window_, tmp_rows + 1, 3,
+                       display_menu_text_[selected_tmux_window_[1]], 50);
   }
   if (selected_tmux_window_.size() > 0) {
-    printLimitedString(debug_window_, 0, 3, display_menu_text_[selected_tmux_window_[0]], 50);
+    printLimitedString(debug_window_, 0, 3,
+                       display_menu_text_[selected_tmux_window_[0]], 50);
   }
 
   wnoutrefresh(debug_window_);
@@ -3725,20 +3683,16 @@ void Status::printTmuxDump() {
 /* printBox() //{ */
 
 void Status::printBox(WINDOW* win) {
-
   if (avoiding_collision_) {
-
     wattron(win, COLOR_PAIR(RED));
     wattron(win, A_BLINK);
     wattron(win, A_STANDOUT);
   }
 
   if (!automatic_start_can_takeoff_ && null_tracker_) {
-
     wattron(win, COLOR_PAIR(YELLOW));
     wattron(win, A_STANDOUT);
   }
-
 
   box(win, 0, 0);
   wattroff(win, A_BLINK);
@@ -3751,11 +3705,9 @@ void Status::printBox(WINDOW* win) {
 /* setupColors() //{ */
 
 void Status::setupColors(bool active) {
-
   init_pair(ALWAYS_RED, COLOR_NICE_RED, BACKGROUND_DEFAULT);
 
   if (active) {
-
     init_pair(NORMAL, COLOR_WHITE, BACKGROUND_DEFAULT);
     init_pair(FIELD, COLOR_WHITE, 235);
     init_pair(RED, COLOR_NICE_RED, BACKGROUND_DEFAULT);
@@ -3767,7 +3719,6 @@ void Status::setupColors(bool active) {
       init_pair(GREEN, COLOR_NICE_GREEN, BACKGROUND_DEFAULT);
     }
     _light_ = false;
-
 
     if (_colorscheme_.find("COLORSCHEME_LIGHT") != std::string::npos) {
       init_pair(NORMAL, COLOR_BLACK, BACKGROUND_DEFAULT);
@@ -3789,7 +3740,6 @@ void Status::setupColors(bool active) {
     init_pair(GREEN, COLOR_DARK_RED, BACKGROUND_DEFAULT);
     _light_ = false;
 
-
     if (_colorscheme_.find("COLORSCHEME_LIGHT") != std::string::npos) {
       init_pair(FIELD, COLOR_DARK_RED, 237);
       _light_ = true;
@@ -3804,9 +3754,8 @@ void Status::setupColors(bool active) {
 /* callTerminal() //{ */
 
 std::string Status::callTerminal(const char* cmd) {
-
-  std::array<char, 128>                    buffer;
-  std::string                              result;
+  std::array<char, 128> buffer;
+  std::string result;
   std::unique_ptr<FILE, decltype(&pclose)> pipe(popen(cmd, "r"), pclose);
 
   if (!pipe) {
@@ -3826,7 +3775,6 @@ std::string Status::callTerminal(const char* cmd) {
 }  // namespace mrs_uav_status
 
 int main(int argc, char** argv) {
-
   rclcpp::init(argc, argv);
 
   auto node = std::make_shared<mrs_uav_status::Status>();
