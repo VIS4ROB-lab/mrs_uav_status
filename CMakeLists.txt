@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.28)
+cmake_minimum_required(VERSION 3.22)
 project(mrs_uav_status)
 
 # set the correct standards
@@ -75,11 +75,11 @@ target_sources(MrsUavStatus_Status
     "src/menu.cpp"
     "src/status.cpp"
     "src/topic_info.cpp"
-  PRIVATE FILE_SET private_headers TYPE HEADERS BASE_DIRS "include"
-  FILES
-    "include/commons.h"
-    "include/input_box.h"
-    "include/menu.h"
+)
+
+target_include_directories(MrsUavStatus_Status
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(MrsUavStatus_Status
@@ -106,11 +106,11 @@ target_sources(MrsUavStatus_Acquisition
   PRIVATE
     "src/data_acquisition.cpp"
     "src/topic_info.cpp"
-  PRIVATE FILE_SET private_headers TYPE HEADERS BASE_DIRS "include"
-  FILES
-    "include/commons.h"
-    "include/input_box.h"
-    "include/menu.h"
+)
+
+target_include_directories(MrsUavStatus_Acquisition
+  PRIVATE
+    "${CMAKE_CURRENT_SOURCE_DIR}/include"
 )
 
 target_link_libraries(MrsUavStatus_Acquisition
