@@ -466,22 +466,14 @@ class RemotePanel(ttk.LabelFrame):
         self.turbo_mode = tk.BooleanVar(value=False)
 
         row = 0
-        ttk.Checkbutton(self, text="Global frame (G)", variable=self.global_mode, command=self._toggle_global).grid(
-            row=row, column=0, sticky="w", padx=4, pady=2
-        )
-        ttk.Checkbutton(self, text="Turbo (T)", variable=self.turbo_mode, command=self._toggle_turbo).grid(
-            row=row, column=1, sticky="w", padx=4, pady=2
-        )
-        ttk.Button(self, text="Hover", command=self._hover).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Arm", command=self._arm).grid(row=row, column=3, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Offboard", command=self._offboard).grid(row=row, column=4, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Toggle Output", command=self._toggle_output).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Offboard", command=self._offboard).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Arm", command=self._arm).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
         ttk.Button(self, text="Takeoff", command=self._takeoff).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Land", command=self._land).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Toggle Output", command=self._toggle_output).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
-
-        row += 1
+        ttk.Button(self, text="Hover", command=self._hover).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Land", command=self._land).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
         ttk.Button(self, text="a/h/Roll+ (left)", width=12, command=lambda: self._send_scaled(0.0, 1.0, 0.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
