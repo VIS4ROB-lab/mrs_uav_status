@@ -485,12 +485,13 @@ class RemotePanel(ttk.LabelFrame):
 
         row += 1
         ttk.Button(self, text="a/h/Roll+ (left)", width=12, command=lambda: self._send_scaled(0.0, 1.0, 0.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
-        ttk.Button(self, text="s/j/Pitch- (back)", width=12, command=lambda: self._send_scaled(-1.0, 0.0, 0.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
         ttk.Button(self, text="d/l/Roll- (right)", width=12, command=lambda: self._send_scaled(0.0, -1.0, 0.0, 0.0)).grid(row=row, column=2, padx=2, pady=2)
+        ttk.Button(self, text="w/k/Pitch+ (forward)", width=12, command=lambda: self._send_scaled(1.0, 0.0, 0.0, 0.0)).grid(row=row, column=3, padx=2, pady=2)
+        ttk.Button(self, text="s/j/Pitch- (back)", width=12, command=lambda: self._send_scaled(-1.0, 0.0, 0.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
 
         row += 1
-        ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
-        ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
+        ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send_scaled(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
+        ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send_scaled(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
         ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.5)).grid(row=row, column=2, padx=2, pady=2)
         ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.5)).grid(row=row, column=3, padx=2, pady=2)
 
@@ -498,10 +499,10 @@ class RemotePanel(ttk.LabelFrame):
         """Get the current safety area scale from collector, fallback to default."""
         return self.collector.get_safety_area_scale(self.uav)
 
-    def _send_scaled(self, dx_factor: float, dy_factor: float, dz: float, dh: float) -> None:
+    def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
         scale = min(self._get_current_scale(), 2)
-        self._send(dx_factor * scale, dy_factor * scale, dz, dh)
+        self._send(dx_factor * scale, dy_factor * scale, dz_factor * scale, dh)
 
     def handle_key(self, keysym: str) -> bool:
         """Return True if the key was handled, mirroring tmux key map."""
@@ -511,10 +512,10 @@ class RemotePanel(ttk.LabelFrame):
             ("s", "j", "Down"): (-scale, 0.0, 0.0, 0.0),
             ("a", "h", "Left"): (0.0, scale, 0.0, 0.0),
             ("d", "l", "Right"): (0.0, -scale, 0.0, 0.0),
-            ("r",): (0.0, 0.0, 1.0, 0.0),
-            ("f",): (0.0, 0.0, -1.0, 0.0),
-            ("q",): (0.0, 0.0, 0.0, 0.2),
-            ("e",): (0.0, 0.0, 0.0, -0.2),
+            ("r",): (0.0, 0.0, scale, 0.0),
+            ("f",): (0.0, 0.0, -scale, 0.0),
+            ("q",): (0.0, 0.0, 0.0, 0.5),
+            ("e",): (0.0, 0.0, 0.0, -0.5),
         }
 
         if keysym == "T":
