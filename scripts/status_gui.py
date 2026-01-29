@@ -93,7 +93,7 @@ class StatusCollector(Node):
             )
             self.create_subscription(
                 MarkerArray,
-                f"/{uav}/control_manager/safety_area_markers",
+                f"/{uav}/safety_area_manager/static_markers",
                 lambda msg, name=uav: self._handle_safety_area_markers(name, msg),
                 qos,
             )
