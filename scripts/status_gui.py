@@ -491,8 +491,8 @@ class RemotePanel(ttk.LabelFrame):
         row += 1
         ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
         ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
-        ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.2)).grid(row=row, column=2, padx=2, pady=2)
-        ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.2)).grid(row=row, column=3, padx=2, pady=2)
+        ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.5)).grid(row=row, column=2, padx=2, pady=2)
+        ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.5)).grid(row=row, column=3, padx=2, pady=2)
 
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
