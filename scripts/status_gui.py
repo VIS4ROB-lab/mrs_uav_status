@@ -110,15 +110,9 @@ class StatusCollector(Node):
                 "arming": self.create_client(SetBool, f"/{uav}/hw_api/arming"),
                 "offboard": self.create_client(Trigger, f"/{uav}/hw_api/offboard"),
                 "takeoff": self.create_client(Trigger, f"/{uav}/uav_manager/takeoff"),
+                "takeoff_apm": self.create_client(Trigger, f"/{uav}/uav_manager/takeoff_apm"),
                 "land": self.create_client(Trigger, f"/{uav}/uav_manager/land"),
-                "midair_activation": self.create_client(Trigger, f"/{uav}/uav_manager/midair_activation"),
-                "toggle_output": self.create_client(SetBool, f"/{uav}/control_manager/toggle_output"),
             }
-            if self._use_apm_takeoff and CommandTOL is not None:
-                self._svc_clients[uav]["takeoff_apm"] = self.create_client(CommandTOL, f"/{uav}/mavros/cmd/takeoff")
-
-        if self._use_apm_takeoff and CommandTOL is None:
-            self.get_logger().error("UAV_FCU=apm but mavros_msgs is unavailable; cannot call /mavros/cmd/takeoff.")
 
     def _handle_status(self, uav: str, msg: UavStatus) -> None:
         with self._lock:
@@ -179,10 +173,8 @@ class StatusCollector(Node):
         """Get the computed safety area scale for a UAV, or default if not available."""
         return self._safety_area_scales.get(name, 2.0)
 
-    def get_takeoff_backend_label(self) -> str:
-        if self._use_apm_takeoff:
-            return "APM" if CommandTOL is not None else "APM missing"
-        return "MRS"
+    def is_apm_fcu(self) -> bool:
+        return self._use_apm_takeoff
 
     def _get_cmd_state(self, snap: UavSnapshot) -> Tuple[float, float, float, float, str]:
         status = snap.status
@@ -296,30 +288,15 @@ class StatusCollector(Node):
 
     def takeoff(self, name: str) -> None:
         if self._use_apm_takeoff:
-            if CommandTOL is None:
-                self.get_logger().error("Skipping takeoff: UAV_FCU=apm but mavros_msgs/srv/CommandTOL is not available.")
-                return
-
-            client = self._svc_clients[name].get("takeoff_apm")
-            if client is None:
-                self.get_logger().error(f"Skipping takeoff for {name}: APM takeoff client is not initialized.")
-                return
+            client = self._svc_clients[name]["takeoff_apm"]
             if not client.service_is_ready():
                 client.wait_for_service(timeout_sec=0.2)
-
-            request = CommandTOL.Request()
-            request.min_pitch = 0.0
-            request.yaw = 0.0
-            request.latitude = 0.0
-            request.longitude = 0.0
-            request.altitude = 1.0
-            client.call_async(request)
-            return
-
-        client = self._svc_clients[name]["takeoff"]
-        if not client.service_is_ready():
-            client.wait_for_service(timeout_sec=0.2)
-        client.call_async(Trigger.Request())
+            client.call_async(Trigger.Request())
+        else:
+            client = self._svc_clients[name]["takeoff"]
+            if not client.service_is_ready():
+                client.wait_for_service(timeout_sec=0.2)
+            client.call_async(Trigger.Request())
 
     def land(self, name: str) -> None:
         client = self._svc_clients[name]["land"]
@@ -504,21 +481,21 @@ class RemotePanel(ttk.LabelFrame):
         self.uav = uav_name
         self.turbo_constraints = turbo_constraints
         self.default_remote_scale = remote_scale  # Fallback if safety area not available
-        self._takeoff_backend_label = self.collector.get_takeoff_backend_label()
 
         self.global_mode = tk.BooleanVar(value=False)
         self.turbo_mode = tk.BooleanVar(value=False)
 
         row = 0
-        ttk.Button(self, text="Offboard", command=self._offboard).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
+        offboard_state = "disabled" if self.collector.is_apm_fcu() else "normal"
+        ttk.Button(self, text="Offboard", command=self._offboard, state=offboard_state).grid(
+            row=row, column=0, sticky="ew", padx=4, pady=2
+        )
         ttk.Button(self, text="Arm", command=self._arm).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text=f"Takeoff ({self._takeoff_backend_label})", command=self._takeoff).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Button(self, text="Output", command=self._toggle_output).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Midair", command=self._midair_activation).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Hover", command=self._hover).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
-        ttk.Button(self, text="Land", command=self._land).grid(row=row, column=3, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Takeoff", command=self._takeoff).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Hover", command=self._hover).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Land", command=self._land).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
         ttk.Button(self, text="a/h/Roll+ (left)", width=12, command=lambda: self._send_scaled(0.0, 1.0, 0.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
@@ -604,12 +581,6 @@ class RemotePanel(ttk.LabelFrame):
 
     def _land(self) -> None:
         self.collector.land(self.uav)
-
-    def _midair_activation(self) -> None:
-        self.collector.midair_activation(self.uav)
-
-    def _toggle_output(self) -> None:
-        self.collector.toggle_output(self.uav)
 
 
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
