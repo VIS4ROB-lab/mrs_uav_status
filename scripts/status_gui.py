@@ -112,6 +112,7 @@ class StatusCollector(Node):
                 "takeoff": self.create_client(Trigger, f"/{uav}/uav_manager/takeoff"),
                 "takeoff_apm": self.create_client(Trigger, f"/{uav}/uav_manager/takeoff_apm"),
                 "land": self.create_client(Trigger, f"/{uav}/uav_manager/land"),
+                "toggle_output": self.create_client(SetBool, f"/{uav}/control_manager/toggle_output"),
             }
 
     def _handle_status(self, uav: str, msg: UavStatus) -> None:
@@ -304,12 +305,6 @@ class StatusCollector(Node):
             client.wait_for_service(timeout_sec=0.2)
         client.call_async(Trigger.Request())
 
-    def midair_activation(self, name: str) -> None:
-        client = self._svc_clients[name]["midair_activation"]
-        if not client.service_is_ready():
-            client.wait_for_service(timeout_sec=0.2)
-        client.call_async(Trigger.Request())
-
     def toggle_output(self, name: str) -> None:
         """Toggle control output ON/OFF based on current state (null_tracker status)."""
         snap = self.get_latest(name)
@@ -486,11 +481,13 @@ class RemotePanel(ttk.LabelFrame):
         self.turbo_mode = tk.BooleanVar(value=False)
 
         row = 0
+        output_state = "disabled" if self.collector.is_apm_fcu() else "normal"
+        ttk.Button(self, text="Activate", command=self._toggle_output, state=output_state).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
         offboard_state = "disabled" if self.collector.is_apm_fcu() else "normal"
         ttk.Button(self, text="Offboard", command=self._offboard, state=offboard_state).grid(
-            row=row, column=0, sticky="ew", padx=4, pady=2
+            row=row, column=1, sticky="ew", padx=4, pady=2
         )
-        ttk.Button(self, text="Arm", command=self._arm).grid(row=row, column=1, sticky="ew", padx=4, pady=2)
+        ttk.Button(self, text="Arm", command=self._arm).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
         ttk.Button(self, text="Takeoff", command=self._takeoff).grid(row=row, column=0, sticky="ew", padx=4, pady=2)
@@ -582,6 +579,8 @@ class RemotePanel(ttk.LabelFrame):
     def _land(self) -> None:
         self.collector.land(self.uav)
 
+    def _toggle_output(self) -> None:
+        self.collector.toggle_output(self.uav)
 
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Python GUI replacement for the tmux status TUI.", add_help=True)
