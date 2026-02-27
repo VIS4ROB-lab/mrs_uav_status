@@ -14,6 +14,7 @@ import os
 import threading
 import time
 from dataclasses import dataclass
+from collections import deque
 from typing import Dict, List, Optional, Tuple
 
 import rclpy
@@ -25,6 +26,10 @@ try:
     from mavros_msgs.srv import CommandTOL
 except ImportError:
     CommandTOL = None
+try:
+    from mavros_msgs.msg import StatusText
+except ImportError:
+    StatusText = None
 from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
@@ -39,6 +44,7 @@ import tf2_ros
 try:
     import tkinter as tk
     from tkinter import ttk
+    from tkinter import scrolledtext
 except ImportError as exc:  # pragma: no cover - Tk not present in headless builds
     raise RuntimeError(
         "Tkinter is required for status_gui.py. Install python3-tk or run with a display server."
@@ -67,6 +73,7 @@ class StatusCollector(Node):
         self._turbo_enabled: Dict[str, bool] = {name: False for name in uavs}
         self._turbo_prev_constraint: Dict[str, Optional[str]] = {name: None for name in uavs}
         self._safety_area_scales: Dict[str, float] = {name: 2.0 for name in uavs}  # Default 2.0 m
+        self._status_logs: Dict[str, deque[Tuple[float, int, str]]] = {name: deque(maxlen=400) for name in uavs}
 
         self._tf_buffer = tf2_ros.Buffer(cache_time=Duration(seconds=5))
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self, spin_thread=False)
@@ -102,6 +109,13 @@ class StatusCollector(Node):
                 lambda msg, name=uav: self._handle_safety_area_markers(name, msg),
                 qos,
             )
+            if StatusText is not None:
+                self.create_subscription(
+                    StatusText,
+                    f"/{uav}/mavros/statustext/recv",
+                    lambda msg, name=uav: self._handle_status_text(name, msg),
+                    qos,
+                )
 
             self._svc_clients[uav] = {
                 "ref": self.create_client(ReferenceStampedSrv, f"/{uav}/control_manager/reference"),
@@ -161,6 +175,20 @@ class StatusCollector(Node):
             # Scale as 1/10 of the safety area size, with minimum of 0.1m
             computed_scale = max(0.1, max_dim / 10.0)
             self._safety_area_scales[uav] = computed_scale
+
+    def _handle_status_text(self, uav: str, msg: object) -> None:
+        with self._lock:
+            text_raw = getattr(msg, "text", "")
+            text = text_raw.strip() if text_raw else ""
+            if text:
+                self._status_logs[uav].append((self._now(), int(getattr(msg, "severity", 6)), text))
+
+    def pop_status_logs(self, name: str) -> List[Tuple[float, int, str]]:
+        with self._lock:
+            logs = list(self._status_logs.get(name, []))
+            if name in self._status_logs:
+                self._status_logs[name].clear()
+            return logs
 
     def get_snapshot(self) -> Dict[str, UavSnapshot]:
         with self._lock:
@@ -582,6 +610,45 @@ class RemotePanel(ttk.LabelFrame):
     def _toggle_output(self) -> None:
         self.collector.toggle_output(self.uav)
 
+
+class ConsolePanel(ttk.LabelFrame):
+    """Scrollable status text console for MAVROS StatusText messages."""
+
+    _SEVERITY_STYLES: Dict[int, Tuple[str, str]] = {
+        0: ("EMERGENCY", "#ff0033"),
+        1: ("ALERT", "#ff3355"),
+        2: ("CRITICAL", "#ff5533"),
+        3: ("ERROR", "#ff7f00"),
+        4: ("WARNING", "#d49f00"),
+        5: ("NOTICE", "#248f24"),
+        6: ("INFO", "#1b6ec2"),
+        7: ("DEBUG", "#808080"),
+    }
+
+    def __init__(self, master: tk.Misc, uav_name: str):
+        super().__init__(master, text=f"{uav_name} console")
+        self._text = scrolledtext.ScrolledText(self, height=8, width=90, state="disabled", wrap="word")
+        self._text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
+
+        for severity, (_, color) in self._SEVERITY_STYLES.items():
+            self._text.tag_configure(f"sev_{severity}", foreground=color)
+        self._text.tag_configure("timestamp", foreground="#666666")
+
+    def append(self, messages: List[Tuple[float, int, str]]) -> None:
+        if not messages:
+            return
+        self._text.configure(state="normal")
+        for stamp, severity, text in messages:
+            label, _ = self._SEVERITY_STYLES.get(severity, (f"SEV{severity}", "#000000"))
+            wall = time.strftime("%H:%M:%S", time.localtime(stamp))
+            self._text.insert("end", f"[{wall}] ", ("timestamp",))
+            self._text.insert("end", f"[{label}] ", (f"sev_{severity}",))
+            self._text.insert("end", f"{text}\n")
+        self._text.see("end")
+        self._text.configure(state="disabled")
+
 def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Python GUI replacement for the tmux status TUI.", add_help=True)
     parser.add_argument("--uavs", nargs="+", default=None, help="UAV names to watch (defaults to $UAV_NAME or uav1)")
@@ -620,6 +687,7 @@ def main(argv: Optional[List[str]] = None) -> None:
 
     frames = {}
     remote_panels: Dict[str, RemotePanel] = {}
+    console_panels: Dict[str, ConsolePanel] = {}
     for idx, name in enumerate(args.uavs):
         container = ttk.Frame(root)
         container.grid(row=idx, column=0, padx=8, pady=6, sticky="nsew")
@@ -627,13 +695,19 @@ def main(argv: Optional[List[str]] = None) -> None:
         status_frame.grid(row=0, column=0, sticky="nsew")
         remote_frame = RemotePanel(container, collector, name, args.turbo_constraints, args.remote_scale)
         remote_frame.grid(row=1, column=0, sticky="nsew", pady=(4, 0))
+        console_frame = ConsolePanel(container, name)
+        console_frame.grid(row=2, column=0, sticky="nsew", pady=(4, 0))
         frames[name] = status_frame
         remote_panels[name] = remote_frame
+        console_panels[name] = console_frame
 
     def refresh_ui() -> None:
         snapshot = collector.get_snapshot()
         for name, frame in frames.items():
             frame.render(snapshot.get(name, UavSnapshot()))
+            logs = collector.pop_status_logs(name)
+            if logs:
+                console_panels[name].append(logs)
         root.after(args.refresh_ms, refresh_ui)
 
     # Bind keyboard to the first UAV's remote panel to mirror tmux controls.
