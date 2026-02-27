@@ -30,6 +30,10 @@ try:
     from mavros_msgs.msg import StatusText
 except ImportError:
     StatusText = None
+try:
+    from mavros_msgs.msg import AttitudeTarget
+except ImportError:
+    AttitudeTarget = None
 from rclpy.duration import Duration
 from rclpy.executors import MultiThreadedExecutor
 from rclpy.node import Node
@@ -58,6 +62,7 @@ class UavSnapshot:
     status: Optional[UavStatus] = None
     status_short: Optional[UavStatusShort] = None
     control_manager_diag: Optional[ControlManagerDiagnostics] = None
+    apm_thrust: Optional[float] = None
     last_update: float = 0.0
 
 
@@ -114,6 +119,13 @@ class StatusCollector(Node):
                     StatusText,
                     f"/{uav}/mavros/statustext/recv",
                     lambda msg, name=uav: self._handle_status_text(name, msg),
+                    qos,
+                )
+            if self._use_apm_takeoff and AttitudeTarget is not None:
+                self.create_subscription(
+                    AttitudeTarget,
+                    f"/{uav}/mavros/setpoint_raw/target_attitude",
+                    lambda msg, name=uav: self._handle_apm_target_attitude(name, msg),
                     qos,
                 )
 
@@ -190,9 +202,23 @@ class StatusCollector(Node):
                 self._status_logs[name].clear()
             return logs
 
+    def _handle_apm_target_attitude(self, uav: str, msg: object) -> None:
+        with self._lock:
+            snap = self._data[uav]
+            snap.apm_thrust = float(getattr(msg, "thrust", 0.0))
+
     def get_snapshot(self) -> Dict[str, UavSnapshot]:
         with self._lock:
-            return {name: UavSnapshot(status=val.status, status_short=val.status_short, control_manager_diag=val.control_manager_diag, last_update=val.last_update) for name, val in self._data.items()}
+            return {
+                name: UavSnapshot(
+                    status=val.status,
+                    status_short=val.status_short,
+                    control_manager_diag=val.control_manager_diag,
+                    apm_thrust=val.apm_thrust,
+                    last_update=val.last_update,
+                )
+                for name, val in self._data.items()
+            }
 
     def get_latest(self, name: str) -> Optional[UavSnapshot]:
         with self._lock:
@@ -368,8 +394,8 @@ class UavFrame(ttk.LabelFrame):
             ("mode", "Mode / RC"),
             ("armed", "Arming"),
             ("output", "Control Output"),
-            ("position", "Position [m]", 30),
-            ("setpoint", "Setpoint [m]", 30),
+            ("position", "Position [m]", 42),
+            ("setpoint", "Setpoint [m]", 42),
             ("controller", "Controller"),
             ("tracker", "Tracker"),
             ("constraint", "Constraint"),
@@ -381,7 +407,7 @@ class UavFrame(ttk.LabelFrame):
 
         for row_idx, (key, label, *width) in enumerate(labels):
             tk.Label(self, text=label, anchor="w", width=18).grid(row=row_idx, column=0, sticky="w", padx=(6, 4), pady=2)
-            value = tk.Label(self, text="—", anchor="w", width=width[0] if width else 22)
+            value = tk.Label(self, text="—", anchor="w", width=width[0] if width else 32)
             value.grid(row=row_idx, column=1, sticky="w", padx=(0, 6), pady=2)
             self._rows[key] = value
 
@@ -395,7 +421,7 @@ class UavFrame(ttk.LabelFrame):
         diag = snapshot.control_manager_diag
 
         if status:
-            self._render_full(status)
+            self._render_full(status, snapshot.apm_thrust)
         elif short:
             self._render_short(short)
         else:
@@ -411,7 +437,7 @@ class UavFrame(ttk.LabelFrame):
             diag_text = self._diag_line(status)
             self._set("diag", diag_text)
 
-    def _render_full(self, msg: UavStatus) -> None:
+    def _render_full(self, msg: UavStatus, apm_thrust: Optional[float] = None) -> None:
         mode = msg.hw_api_mode if msg.hw_api_mode else "—"
         rc_text = "RC" if msg.rc_mode else "autonomy"
         self._set("mode", f"{mode} ({rc_text})")
@@ -435,12 +461,17 @@ class UavFrame(ttk.LabelFrame):
         self._set("odom", f"{msg.odom_hz:.1f} Hz in {msg.odom_frame}")
 
         battery = f"{msg.battery_volt:.1f} V, {msg.battery_curr:.1f} A"
-        thrust = f"thrust {msg.thrust:.2f}"
+        thrust_value = apm_thrust if apm_thrust is not None else msg.thrust
+        thrust = f"thrust {thrust_value:.2f}"
         self._set("battery", f"{battery}; {thrust}")
 
-        cpu = f"CPU {msg.cpu_load:.1f}% ({msg.cpu_load_total:.1f}% total)"
+        cpu = f"CPU {msg.cpu_load:.1f}%"
         temp = f"{msg.cpu_temperature:.1f} C" if msg.cpu_temperature > 0 else "temp n/a"
-        ram = f"RAM {msg.free_ram:.1f}/{msg.total_ram:.1f} GB"
+        if msg.total_ram > 0.0:
+            used_pct = max(0.0, min(100.0, (1.0 - (msg.free_ram / msg.total_ram)) * 100.0))
+            ram = f"RAM {used_pct:.1f}%"
+        else:
+            ram = ""
         self._set("health", f"{cpu}; {temp}; {ram}")
 
     def _render_short(self, msg: UavStatusShort) -> None:
