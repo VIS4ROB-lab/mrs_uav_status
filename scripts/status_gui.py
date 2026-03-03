@@ -562,8 +562,8 @@ class RemotePanel(ttk.LabelFrame):
         row += 1
         ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send_scaled(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
         ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send_scaled(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
-        ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.5)).grid(row=row, column=2, padx=2, pady=2)
-        ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.5)).grid(row=row, column=3, padx=2, pady=2)
+        ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.25)).grid(row=row, column=2, padx=2, pady=2)
+        ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.25)).grid(row=row, column=3, padx=2, pady=2)
 
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
@@ -587,15 +587,6 @@ class RemotePanel(ttk.LabelFrame):
             ("q",): (0.0, 0.0, 0.0, 0.25),
             ("e",): (0.0, 0.0, 0.0, -0.25),
         }
-
-        if keysym == "T":
-            self.turbo_mode.set(not self.turbo_mode.get())
-            self._toggle_turbo()
-            return True
-        if keysym == "G":
-            self.global_mode.set(not self.global_mode.get())
-            self._toggle_global()
-            return True
 
         for keys, offsets in mapping.items():
             if keysym in keys:
