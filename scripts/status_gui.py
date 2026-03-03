@@ -649,7 +649,7 @@ class ConsolePanel(ttk.LabelFrame):
 
     def __init__(self, master: tk.Misc, uav_name: str):
         super().__init__(master, text=f"{uav_name} console")
-        self._text = scrolledtext.ScrolledText(self, height=8, width=90, state="disabled", wrap="word")
+        self._text = scrolledtext.ScrolledText(self, height=8, width=56, state="disabled", wrap="word")
         self._text.grid(row=0, column=0, sticky="nsew", padx=4, pady=4)
         self.columnconfigure(0, weight=1)
         self.rowconfigure(0, weight=1)
