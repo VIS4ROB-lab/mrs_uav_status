@@ -439,12 +439,10 @@ class UavFrame(ttk.LabelFrame):
 
     def _render_full(self, msg: UavStatus, apm_thrust: Optional[float] = None) -> None:
         mode = msg.hw_api_mode if msg.hw_api_mode else "—"
-        rc_text = "RC" if msg.rc_mode else "autonomy"
-        self._set("mode", f"{mode} ({rc_text})")
+        self._set("mode", f"{mode}")
 
         armed = "ARMED" if msg.hw_api_armed else "DISARMED"
-        ready = "ready" if msg.automatic_start_can_takeoff else "not ready"
-        self._set("armed", f"{armed}, {ready}")
+        self._set("armed", f"{armed}")
 
         # Control output status will be updated from diagnostics in render()
         # Default to ENABLED if diagnostics not yet available
