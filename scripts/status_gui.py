@@ -185,7 +185,7 @@ class StatusCollector(Node):
             height = y_max - y_min
             max_dim = max(width, height) if max(width, height) > 0 else 10.0
             # Scale as 1/10 of the safety area size, with minimum of 0.1m
-            computed_scale = max(0.1, max_dim / 10.0)
+            computed_scale = min(max(0.1, max_dim / 10.0), 1.0)
             self._safety_area_scales[uav] = computed_scale
 
     def _handle_status_text(self, uav: str, msg: object) -> None:
@@ -226,7 +226,7 @@ class StatusCollector(Node):
 
     def get_safety_area_scale(self, name: str) -> float:
         """Get the computed safety area scale for a UAV, or default if not available."""
-        return self._safety_area_scales.get(name, 2.0)
+        return self._safety_area_scales.get(name, 1.0)
 
     def is_apm_fcu(self) -> bool:
         return self._use_apm_takeoff
@@ -569,12 +569,12 @@ class RemotePanel(ttk.LabelFrame):
 
     def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
-        scale = min(self._get_current_scale(), 2)
+        scale = min(self._get_current_scale(), 1.0)
         self._send(dx_factor * scale, dy_factor * scale, dz_factor * scale, dh)
 
     def handle_key(self, keysym: str) -> bool:
         """Return True if the key was handled, mirroring tmux key map."""
-        scale = min(self._get_current_scale(), 2)
+        scale = min(self._get_current_scale(), 1.0)
         mapping = {
             ("w", "k", "Up"): (scale, 0.0, 0.0, 0.0),
             ("s", "j", "Down"): (-scale, 0.0, 0.0, 0.0),
@@ -593,7 +593,7 @@ class RemotePanel(ttk.LabelFrame):
         return False
 
     def _send(self, dx: float, dy: float, dz: float, dh: float) -> None:
-        scale = 2.5 if self.turbo_mode.get() else 1.0
+        scale = 1.0
         self.collector.send_offset(self.uav, dx * scale, dy * scale, dz * scale, dh * scale, self.global_mode.get())
 
     def _toggle_turbo(self) -> None:
