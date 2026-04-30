@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple
 import rclpy
 from tkinter import messagebox
 from geometry_msgs.msg import Pose, PoseStamped
-from mrs_msgs.msg import Reference, UavStatus, UavStatusShort, ControlManagerDiagnostics
+from mrs_msgs.msg import ControlManagerDiagnostics, Reference, UavDiagnostics, UavStatus, UavStatusShort
 from mrs_msgs.srv import ReferenceStampedSrv, String as StringSrv
 try:
     from mavros_msgs.srv import CommandTOL
@@ -79,6 +79,7 @@ class StatusCollector(Node):
         self._turbo_prev_constraint: Dict[str, Optional[str]] = {name: None for name in uavs}
         self._safety_area_scales: Dict[str, float] = {name: 2.0 for name in uavs}  # Default 2.0 m
         self._status_logs: Dict[str, deque[Tuple[float, int, str]]] = {name: deque(maxlen=400) for name in uavs}
+        self._last_uav_diag_state: Dict[str, Optional[str]] = {name: None for name in uavs}
 
         self._tf_buffer = tf2_ros.Buffer(cache_time=Duration(seconds=5))
         self._tf_listener = tf2_ros.TransformListener(self._tf_buffer, self, spin_thread=False)
@@ -109,6 +110,12 @@ class StatusCollector(Node):
                 qos,
             )
             self.create_subscription(
+                UavDiagnostics,
+                f"/{uav}/control_manager/uav_diagnostics",
+                lambda msg, name=uav: self._handle_uav_diagnostics(name, msg),
+                qos,
+            )
+            self.create_subscription(
                 MarkerArray,
                 f"/{uav}/safety_area_manager/static_markers",
                 lambda msg, name=uav: self._handle_safety_area_markers(name, msg),
@@ -133,6 +140,9 @@ class StatusCollector(Node):
                 "ref": self.create_client(ReferenceStampedSrv, f"/{uav}/control_manager/reference"),
                 "constraints": self.create_client(StringSrv, f"/{uav}/constraint_manager/set_constraints"),
                 "hover": self.create_client(Trigger, f"/{uav}/control_manager/hover"),
+                "start_tracking": self.create_client(Trigger, f"/{uav}/control_manager/start_trajectory_tracking"),
+                "stop_tracking": self.create_client(Trigger, f"/{uav}/control_manager/stop_trajectory_tracking"),
+                "resume_tracking": self.create_client(Trigger, f"/{uav}/control_manager/resume_trajectory_tracking"),
                 "arming": self.create_client(SetBool, f"/{uav}/hw_api/arming"),
                 "offboard": self.create_client(Trigger, f"/{uav}/hw_api/offboard"),
                 "takeoff": self.create_client(Trigger, f"/{uav}/uav_manager/takeoff"),
@@ -158,6 +168,14 @@ class StatusCollector(Node):
             snap = self._data[uav]
             snap.control_manager_diag = msg
             snap.last_update = self._now()
+
+    def _handle_uav_diagnostics(self, uav: str, msg: UavDiagnostics) -> None:
+        with self._lock:
+            state = msg.state.strip()
+            if not state or self._last_uav_diag_state.get(uav) == state:
+                return
+            self._last_uav_diag_state[uav] = state
+            self._status_logs[uav].append((self._now(), self._uav_diag_severity(state), state))
 
     def _handle_safety_area_markers(self, uav: str, msg: MarkerArray) -> None:
         """Extract safety area bounds from marker array and compute optimal scale."""
@@ -327,6 +345,24 @@ class StatusCollector(Node):
             client.wait_for_service(timeout_sec=0.2)
         client.call_async(Trigger.Request())
 
+    def start_trajectory_tracking(self, name: str) -> None:
+        client = self._svc_clients[name]["start_tracking"]
+        if not client.service_is_ready():
+            client.wait_for_service(timeout_sec=0.2)
+        client.call_async(Trigger.Request())
+
+    def stop_trajectory_tracking(self, name: str) -> None:
+        client = self._svc_clients[name]["stop_tracking"]
+        if not client.service_is_ready():
+            client.wait_for_service(timeout_sec=0.2)
+        client.call_async(Trigger.Request())
+
+    def resume_trajectory_tracking(self, name: str) -> None:
+        client = self._svc_clients[name]["resume_tracking"]
+        if not client.service_is_ready():
+            client.wait_for_service(timeout_sec=0.2)
+        client.call_async(Trigger.Request())
+
     def arm(self, name: str, arm: bool = True) -> None:
         client = self._svc_clients[name]["arming"]
         if not client.service_is_ready():
@@ -379,6 +415,15 @@ class StatusCollector(Node):
     def _now(self) -> float:
         ros_time: Time = self.get_clock().now()
         return float(ros_time.nanoseconds) * 1e-9
+
+    @staticmethod
+    def _uav_diag_severity(state: str) -> int:
+        lowered = state.lower()
+        if "failed" in lowered or "error" in lowered:
+            return 3
+        if "warn" in lowered:
+            return 4
+        return 6
 
 
 class UavFrame(ttk.LabelFrame):
@@ -552,16 +597,27 @@ class RemotePanel(ttk.LabelFrame):
         ttk.Button(self, text="Land", command=self._land).grid(row=row, column=2, sticky="ew", padx=4, pady=2)
 
         row += 1
-        ttk.Button(self, text="a/h/Roll+ (left)", width=12, command=lambda: self._send_scaled(0.0, 1.0, 0.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
-        ttk.Button(self, text="d/l/Roll- (right)", width=12, command=lambda: self._send_scaled(0.0, -1.0, 0.0, 0.0)).grid(row=row, column=2, padx=2, pady=2)
-        ttk.Button(self, text="w/k/Pitch+ (forward)", width=12, command=lambda: self._send_scaled(1.0, 0.0, 0.0, 0.0)).grid(row=row, column=3, padx=2, pady=2)
-        ttk.Button(self, text="s/j/Pitch- (back)", width=12, command=lambda: self._send_scaled(-1.0, 0.0, 0.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
+        ttk.Button(self, text="Start Path", command=self._start_tracking).grid(
+            row=row, column=0, sticky="ew", padx=4, pady=2
+        )
+        ttk.Button(self, text="Stop Path", command=self._stop_tracking).grid(
+            row=row, column=1, sticky="ew", padx=4, pady=2
+        )
+        ttk.Button(self, text="Resume Path", command=self._resume_tracking).grid(
+            row=row, column=2, sticky="ew", padx=4, pady=2
+        )
 
-        row += 1
-        ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send_scaled(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
-        ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send_scaled(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
-        ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.25)).grid(row=row, column=2, padx=2, pady=2)
-        ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.25)).grid(row=row, column=3, padx=2, pady=2)
+        # row += 1
+        # ttk.Button(self, text="a/h/Roll+ (left)", width=12, command=lambda: self._send_scaled(0.0, 1.0, 0.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
+        # ttk.Button(self, text="d/l/Roll- (right)", width=12, command=lambda: self._send_scaled(0.0, -1.0, 0.0, 0.0)).grid(row=row, column=2, padx=2, pady=2)
+        # ttk.Button(self, text="w/k/Pitch+ (forward)", width=12, command=lambda: self._send_scaled(1.0, 0.0, 0.0, 0.0)).grid(row=row, column=3, padx=2, pady=2)
+        # ttk.Button(self, text="s/j/Pitch- (back)", width=12, command=lambda: self._send_scaled(-1.0, 0.0, 0.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
+
+        # row += 1
+        # ttk.Button(self, text="r (thrust+)", width=12, command=lambda: self._send_scaled(0.0, 0.0, 1.0, 0.0)).grid(row=row, column=0, padx=2, pady=2)
+        # ttk.Button(self, text="f (thrust-)", width=12, command=lambda: self._send_scaled(0.0, 0.0, -1.0, 0.0)).grid(row=row, column=1, padx=2, pady=2)
+        # ttk.Button(self, text="q (yaw+)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, 0.25)).grid(row=row, column=2, padx=2, pady=2)
+        # ttk.Button(self, text="e (yaw-)", width=12, command=lambda: self._send(0.0, 0.0, 0.0, -0.25)).grid(row=row, column=3, padx=2, pady=2)
 
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
@@ -629,6 +685,15 @@ class RemotePanel(ttk.LabelFrame):
 
     def _toggle_output(self) -> None:
         self.collector.toggle_output(self.uav)
+
+    def _start_tracking(self) -> None:
+        self.collector.start_trajectory_tracking(self.uav)
+
+    def _stop_tracking(self) -> None:
+        self.collector.stop_trajectory_tracking(self.uav)
+
+    def _resume_tracking(self) -> None:
+        self.collector.resume_trajectory_tracking(self.uav)
 
 
 class ConsolePanel(ttk.LabelFrame):
