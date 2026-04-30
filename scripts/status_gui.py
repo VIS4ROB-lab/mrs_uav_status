@@ -622,7 +622,7 @@ class RemotePanel(ttk.LabelFrame):
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
         # return self.collector.get_safety_area_scale(self.uav)
-        return 0.25
+        return 0.5
 
     def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
@@ -639,8 +639,8 @@ class RemotePanel(ttk.LabelFrame):
             ("d", "l", "Right"): (0.0, -scale, 0.0, 0.0),
             ("r",): (0.0, 0.0, scale, 0.0),
             ("f",): (0.0, 0.0, -scale, 0.0),
-            ("q",): (0.0, 0.0, 0.0, 0.25),
-            ("e",): (0.0, 0.0, 0.0, -0.25),
+            ("q",): (0.0, 0.0, 0.0, 0.5),
+            ("e",): (0.0, 0.0, 0.0, -0.5),
         }
 
         for keys, offsets in mapping.items():
