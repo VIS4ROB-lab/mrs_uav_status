@@ -172,7 +172,7 @@ class StatusCollector(Node):
     def _handle_uav_diagnostics(self, uav: str, msg: UavDiagnostics) -> None:
         with self._lock:
             state = msg.state.strip()
-            if not state or self._last_uav_diag_state.get(uav) == state:
+            if not state:
                 return
             self._last_uav_diag_state[uav] = state
             self._status_logs[uav].append((self._now(), self._uav_diag_severity(state), state))
@@ -621,7 +621,8 @@ class RemotePanel(ttk.LabelFrame):
 
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
-        return self.collector.get_safety_area_scale(self.uav)
+        # return self.collector.get_safety_area_scale(self.uav)
+        return 0.25
 
     def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
