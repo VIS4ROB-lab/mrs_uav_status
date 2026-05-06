@@ -744,7 +744,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--turbo-constraints", default="fast", help="Constraint preset used when Turbo is toggled on")
     parser.add_argument("--remote-scale", type=float, default=2.0, help="Scale factor for remote control offsets (meters per step)")
-    parser.add_argument("--refresh-ms", type=int, default=400, help="GUI refresh period in milliseconds")
+    parser.add_argument("--refresh-ms", type=int, default=30, help="GUI refresh period in milliseconds")
     parser.add_argument("--title", default=None, help="Optional custom window title")
     args, ros_args = parser.parse_known_args(argv)
 
