@@ -479,8 +479,8 @@ class UavFrame(ttk.LabelFrame):
             self._set("output", output_status)
 
         if status:
-            diag_text = self._diag_line(status)
-            self._set("diag", diag_text)
+            diag_text, diag_color = self._diag_line(status)
+            self._set("diag", diag_text, diag_color)
 
     def _render_full(self, msg: UavStatus, apm_thrust: Optional[float] = None) -> None:
         mode = msg.hw_api_mode if msg.hw_api_mode else "—"
@@ -529,9 +529,10 @@ class UavFrame(ttk.LabelFrame):
 
     @staticmethod
     def _diag_line(msg: UavStatus) -> str:
-        cm_state, _ = UavFrame._color_status(msg.control_manager_diag_color)
-        hw_state, _ = UavFrame._color_status(msg.hw_api_color)
-        return f"CM {cm_state} @ {msg.control_manager_diag_hz:.1f} Hz | HW {hw_state} @ {msg.hw_api_hz:.1f} Hz"
+        cm_state, cm_color = UavFrame._color_status(msg.control_manager_diag_color)
+        hw_state, hw_color = UavFrame._color_status(msg.hw_api_color)
+        txt_color = hw_color if hw_color == "#b00020" or hw_color == "#c17d0d" else cm_color
+        return f"CM {cm_state} @ {msg.control_manager_diag_hz:.1f} Hz | HW {hw_state} @ {msg.hw_api_hz:.1f} Hz", txt_color
 
     @staticmethod
     def _color_status(code: int) -> Tuple[str, str]:
