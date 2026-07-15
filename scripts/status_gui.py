@@ -623,7 +623,7 @@ class RemotePanel(ttk.LabelFrame):
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
         # return self.collector.get_safety_area_scale(self.uav)
-        return 0.5
+        return 1.0
 
     def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
@@ -745,7 +745,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--turbo-constraints", default="fast", help="Constraint preset used when Turbo is toggled on")
     parser.add_argument("--remote-scale", type=float, default=2.0, help="Scale factor for remote control offsets (meters per step)")
-    parser.add_argument("--refresh-ms", type=int, default=30, help="GUI refresh period in milliseconds")
+    parser.add_argument("--refresh-ms", type=int, default=50, help="GUI refresh period in milliseconds (default 33ms = ~30Hz)")
     parser.add_argument("--title", default=None, help="Optional custom window title")
     args, ros_args = parser.parse_known_args(argv)
 
@@ -800,13 +800,8 @@ def main(argv: Optional[List[str]] = None) -> None:
     # Bind keyboard to the first UAV's remote panel to mirror tmux controls.
     if remote_panels:
         default_uav = args.uavs[0]
-
-        def on_key(event: tk.Event) -> None:  # type: ignore[name-defined]
-            panel = remote_panels.get(default_uav)
-            if panel and panel.handle_key(event.keysym):
-                return
-
-        for key in [
+        pressed_keys = set()  # Track currently pressed keys
+        keyboard_keys = [
             "w",
             "k",
             "Up",
@@ -825,8 +820,28 @@ def main(argv: Optional[List[str]] = None) -> None:
             "e",
             "T",
             "G",
-        ]:
-            root.bind(key, on_key)
+        ]
+
+        def on_key_press(event: tk.Event) -> None:  # type: ignore[name-defined]
+            pressed_keys.add(event.keysym)
+
+        def on_key_release(event: tk.Event) -> None:  # type: ignore[name-defined]
+            pressed_keys.discard(event.keysym)
+
+        def process_held_keys() -> None:
+            """Process held keys at fixed frequency (30 Hz)."""
+            panel = remote_panels.get(default_uav)
+            if panel:
+                for keysym in pressed_keys:
+                    panel.handle_key(keysym)
+            root.after(33, process_held_keys)  # 33ms = ~30Hz keyboard update
+
+        for key in keyboard_keys:
+            root.bind(f"<KeyPress-{key}>", on_key_press)
+            root.bind(f"<KeyRelease-{key}>", on_key_release)
+
+        # Start the keyboard processing loop
+        root.after(33, process_held_keys)
 
     def shutdown() -> None:
         root.destroy()
