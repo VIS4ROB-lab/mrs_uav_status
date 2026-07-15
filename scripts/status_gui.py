@@ -745,7 +745,7 @@ def parse_args(argv: Optional[List[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--turbo-constraints", default="fast", help="Constraint preset used when Turbo is toggled on")
     parser.add_argument("--remote-scale", type=float, default=2.0, help="Scale factor for remote control offsets (meters per step)")
-    parser.add_argument("--refresh-ms", type=int, default=50, help="GUI refresh period in milliseconds (default 33ms = ~30Hz)")
+    parser.add_argument("--refresh-ms", type=int, default=20, help="GUI refresh period in milliseconds (default 33ms = ~30Hz)")
     parser.add_argument("--title", default=None, help="Optional custom window title")
     args, ros_args = parser.parse_known_args(argv)
 
@@ -834,7 +834,7 @@ def main(argv: Optional[List[str]] = None) -> None:
             if panel:
                 for keysym in pressed_keys:
                     panel.handle_key(keysym)
-            root.after(33, process_held_keys)  # 33ms = ~30Hz keyboard update
+            root.after(20, process_held_keys)  # 33ms = ~30Hz keyboard update
 
         for key in keyboard_keys:
             root.bind(f"<KeyPress-{key}>", on_key_press)
