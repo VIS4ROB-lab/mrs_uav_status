@@ -202,8 +202,8 @@ class StatusCollector(Node):
             width = x_max - x_min
             height = y_max - y_min
             max_dim = max(width, height) if max(width, height) > 0 else 10.0
-            # Scale as 1/10 of the safety area size, with minimum of 0.1m
-            computed_scale = min(max(0.1, max_dim / 10.0), 1.0)
+            # Scale as 1/10 of the safety area size, with minimum of 0.5m
+            computed_scale = min(max(0.5, max_dim / 10.0), 1.0)
             self._safety_area_scales[uav] = computed_scale
 
     def _handle_status_text(self, uav: str, msg: object) -> None:
@@ -622,8 +622,7 @@ class RemotePanel(ttk.LabelFrame):
 
     def _get_current_scale(self) -> float:
         """Get the current safety area scale from collector, fallback to default."""
-        # return self.collector.get_safety_area_scale(self.uav)
-        return 1.0
+        return self.collector.get_safety_area_scale(self.uav)
 
     def _send_scaled(self, dx_factor: float, dy_factor: float, dz_factor: float, dh: float) -> None:
         """Send offset with scale applied from safety area size."""
